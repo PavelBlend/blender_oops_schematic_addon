@@ -30,19 +30,28 @@ class SceneNodeTree(NodeTree):
 font_id = 0
 
 
+def draw_line(root_index, child_index, layer):
+    bgl.glColor4f(0, 0, 0, 0.5)
+
+    bgl.glBegin(bgl.GL_LINES)
+    bgl.glVertex2f(root_index * 300, layer * 200 + 50)
+    bgl.glVertex2f(child_index * 300, layer * 200 + 200)
+    bgl.glEnd()
+
+
 def draw_node(r, g, b, text, index, layer):
-    bgl.glColor4f(r, g, b, 1.0)
+    bgl.glColor4f(r, g, b, 0.5)
 
     bgl.glBegin(bgl.GL_QUADS)
-    bgl.glVertex2f(index * 300, layer * 100)
-    bgl.glVertex2f(index * 300, layer * 100 + 50)
-    bgl.glVertex2f(len(text) * 16 + index * 300, layer * 100 + 50)
-    bgl.glVertex2f(len(text) * 16 + index * 300, layer * 100)
+    bgl.glVertex2f(index * 300, layer * 200)
+    bgl.glVertex2f(index * 300, layer * 200 + 50)
+    bgl.glVertex2f(len(text) * 16 + index * 300, layer * 200 + 50)
+    bgl.glVertex2f(len(text) * 16 + index * 300, layer * 200)
     bgl.glEnd()
 
     bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
-    blf.position(font_id, index * 300, layer * 100 + 16, 0)
+    blf.position(font_id, index * 300, layer * 200 + 16, 0)
     blf.size(font_id, 30, 64)
     blf.draw(font_id, text)
 
@@ -52,12 +61,19 @@ def draw_scene_nodes():
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'SceneTreeType':
                 bgl.glEnable(bgl.GL_BLEND)
+                bgl.glLineWidth(2)
+
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    draw_node(0.2, 0.2, 0.8, scene.name, scene_index, 1)
+                    for object_scene_index, object in enumerate(scene.objects):
+                        draw_line(scene_index, bpy.data.objects.find(object.name), 0)
+                        draw_line(bpy.data.objects.find(object.name), bpy.data.meshes.find(object.data.name), 1)
+
+                for scene_index, scene in enumerate(bpy.data.scenes):
+                    draw_node(0.2, 0.2, 0.8, scene.name, scene_index, 0)
                 for object_index, object in enumerate(bpy.data.objects):
-                    draw_node(0.8, 0.4, 0.2, object.name, object_index, 2)
+                    draw_node(0.8, 0.4, 0.2, object.name, object_index, 1)
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
-                    draw_node(0.6, 0.6, 0.6, mesh.name, mesh_index, 3)
+                    draw_node(0.6, 0.6, 0.6, mesh.name, mesh_index, 2)
 
 
 def register():
