@@ -31,7 +31,7 @@ class SceneNodeTree(NodeTree):
 
 
 class SchematicNode:
-    def __init__(self, position_x, position_y, size_x, size_y, text, color, index, layer):
+    def __init__(self, position_x, position_y, size_x, size_y, text, color, index, layer, offset_x):
         self.children = []
         self.parents = []
         self.position_x = position_x
@@ -42,42 +42,39 @@ class SchematicNode:
         self.color = color
         self.index = index
         self.layer = layer
+        self.offset_x = offset_x
 
-    def draw(self, last_offsets, last_offsets_child):
+    def draw(self):
 
-        def _draw_line(last_offsets, last_offsets_child):
+        def _draw_line():
             bgl.glColor3f(0, 0, 0)
 
             for child in self.children:
                 bgl.glBegin(bgl.GL_LINES)
-                bgl.glVertex2f(last_offsets[self.layer] + len(self.text) * 8, (self.layer) * 200 + 50)
-                bgl.glVertex2f(last_offsets_child[self.layer + 1] + len(child.text) * 8, (self.layer) * 200 + 200)
+                bgl.glVertex2f(self.offset_x + len(self.text) * 8, (self.layer) * 200 + 50)
+                bgl.glVertex2f(child.offset_x + len(child.text) * 8, (self.layer) * 200 + 200)
                 bgl.glEnd()
-                last_offsets_child[self.layer + 1] += len(child.text) * 16 + 50
 
-        def _draw_box(last_offsets):
+        def _draw_box():
             bgl.glColor3f(*self.color)
 
             bgl.glBegin(bgl.GL_QUADS)
-            bgl.glVertex2f(last_offsets[self.layer], self.layer * 200)
-            bgl.glVertex2f(last_offsets[self.layer], self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + last_offsets[self.layer], self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + last_offsets[self.layer], self.layer * 200)
+            bgl.glVertex2f(self.offset_x, self.layer * 200)
+            bgl.glVertex2f(self.offset_x, self.layer * 200 + 50)
+            bgl.glVertex2f(len(self.text) * 16 + self.offset_x, self.layer * 200 + 50)
+            bgl.glVertex2f(len(self.text) * 16 + self.offset_x, self.layer * 200)
             bgl.glEnd()
 
-        def _draw_text(last_offsets):
+        def _draw_text():
             bgl.glColor3f(0, 0, 0)
 
-            blf.position(font_id, last_offsets[self.layer], self.layer * 200 + 16, 0)
+            blf.position(font_id, self.offset_x, self.layer * 200 + 16, 0)
             blf.size(font_id, 30, 64)
             blf.draw(font_id, self.text)
 
-        _draw_line(last_offsets, last_offsets_child)
-        _draw_box(last_offsets)
-        _draw_text(last_offsets)
-        last_offsets[self.layer] += len(self.text) * 16 + 50
-
-        return last_offsets, last_offsets_child
+        _draw_line()
+        _draw_box()
+        _draw_text()
 
 
 def draw_scene_nodes():
@@ -86,38 +83,40 @@ def draw_scene_nodes():
             if area.spaces[0].tree_type == 'SceneTreeType':
 
                 schematic_nodes = []
-                meshes = set()
+                object_nodes = {}
+                scene_nodes = {}
+                meshes_nodes = {}
 
+                last_offset = 0
+                for mesh_index, mesh in enumerate(bpy.data.meshes):
+                    mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), mesh_index, 2, last_offset)
+                    last_offset += len(mesh.name) * 16 + 50
+                    meshes_nodes[mesh.name] = mesh_node
+                    schematic_nodes.append(mesh_node)
+
+                last_offset = 0
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0)
-                    for object_scene_index, object in enumerate(scene.objects):
-
-                        object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), bpy.data.objects.find(object.name), 1)
-                        object_node.parents.append(scene_node)
-
-                        if object.type == 'MESH':
-                            mesh_node = SchematicNode(0, 0, 0, 0, object.data.name, (0.6, 0.6, 0.6), bpy.data.meshes.find(object.data.name), 2)
-                            mesh_node.parents.append(object_node)
-                            schematic_nodes.append(mesh_node)
-                            meshes.add(object.data.name)
-
-                            object_node.children.append(mesh_node)
-
-                        scene_node.children.append(object_node)
-
-                        schematic_nodes.append(object_node)
-
+                    scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0, last_offset)
+                    last_offset += len(scene.name) * 16 + 50
+                    scene_nodes[scene.name] = scene_node
                     schematic_nodes.append(scene_node)
 
-                for mesh in bpy.data.meshes:
-                    if mesh.name not in meshes:
-                        mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), bpy.data.meshes.find(mesh.name), 2)
-                        schematic_nodes.append(mesh_node)
+                last_offset = 0
+                for object_index, object in enumerate(bpy.data.objects):
+                    object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset)
+                    last_offset += len(object.name) * 16 + 50
+                    mesh_node = meshes_nodes[object.data.name]
+                    mesh_node.parents.append(object_node)
+                    object_node.children.append(mesh_node)
+                    for scene in object.users_scene:
+                        scene_node = scene_nodes[scene.name]
+                        scene_node.children.append(object_node)
+                        object_node.parents.append(scene_node)
+                    object_nodes[object.name] = object_node
+                    schematic_nodes.append(object_node)
 
-                last_offsets = {0: 0, 1: 0, 2: 0}
-                last_offsets_child = {0: 0, 1: 0, 2: 0}
                 for schematic_node in schematic_nodes:
-                    last_offsets, last_offsets_child = schematic_node.draw(last_offsets, last_offsets_child)
+                    schematic_node.draw()
 
 
 def register():
