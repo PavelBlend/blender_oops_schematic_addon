@@ -50,8 +50,8 @@ class SchematicNode:
 
             for child in self.children:
                 bgl.glBegin(bgl.GL_LINES)
-                bgl.glVertex2f(self.index * 300, (self.layer) * 200 + 50)
-                bgl.glVertex2f(child.index * 300, (self.layer) * 200 + 200)
+                bgl.glVertex2f(self.index * 300 + len(self.text) * 8, (self.layer) * 200 + 50)
+                bgl.glVertex2f(child.index * 300 + len(child.text) * 8, (self.layer) * 200 + 200)
                 bgl.glEnd()
 
         def _draw_box():
