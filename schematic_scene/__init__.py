@@ -22,6 +22,7 @@ from bpy.types import NodeTree
 # font_path = dir_path + 'bmonofont-i18n.ttf'
 # font_id = blf.load(font_path)
 font_id = 0
+char_size = 8
 
 
 class SceneNodeTree(NodeTree):
@@ -51,8 +52,8 @@ class SchematicNode:
 
             for child in self.children:
                 bgl.glBegin(bgl.GL_LINES)
-                bgl.glVertex2f(self.offset_x + len(self.text) * 8, (self.layer) * 200 + 50)
-                bgl.glVertex2f(child.offset_x + len(child.text) * 8, (self.layer) * 200 + 200)
+                bgl.glVertex2f(self.offset_x + len(self.text) * (char_size / 2), (self.layer) * 200 + 50)
+                bgl.glVertex2f(child.offset_x + len(child.text) * (char_size / 2), (self.layer) * 200 + 200)
                 bgl.glEnd()
 
         def _draw_box():
@@ -61,15 +62,16 @@ class SchematicNode:
             bgl.glBegin(bgl.GL_QUADS)
             bgl.glVertex2f(self.offset_x, self.layer * 200)
             bgl.glVertex2f(self.offset_x, self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + self.offset_x, self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + self.offset_x, self.layer * 200)
+            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.layer * 200 + 50)
+            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.layer * 200)
             bgl.glEnd()
 
         def _draw_text():
             bgl.glColor3f(0, 0, 0)
 
             blf.position(font_id, self.offset_x, self.layer * 200 + 16, 0)
-            blf.size(font_id, 30, 64)
+            blf.blur(font_id, 0)
+            blf.size(font_id, 30, 30)
             blf.draw(font_id, self.text)
 
         _draw_line()
@@ -90,21 +92,21 @@ def draw_scene_nodes():
                 last_offset = 0
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
                     mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), mesh_index, 2, last_offset)
-                    last_offset += len(mesh.name) * 16 + 50
+                    last_offset += len(mesh.name) * char_size + 50
                     meshes_nodes[mesh.name] = mesh_node
                     schematic_nodes.append(mesh_node)
 
                 last_offset = 0
                 for scene_index, scene in enumerate(bpy.data.scenes):
                     scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0, last_offset)
-                    last_offset += len(scene.name) * 16 + 50
+                    last_offset += len(scene.name) * char_size + 50
                     scene_nodes[scene.name] = scene_node
                     schematic_nodes.append(scene_node)
 
                 last_offset = 0
                 for object_index, object in enumerate(bpy.data.objects):
                     object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset)
-                    last_offset += len(object.name) * 16 + 50
+                    last_offset += len(object.name) * char_size + 50
                     if object.type == 'MESH':
                         mesh_node = meshes_nodes[object.data.name]
                         mesh_node.parents.append(object_node)
