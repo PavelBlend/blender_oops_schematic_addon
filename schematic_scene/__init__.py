@@ -105,9 +105,10 @@ def draw_scene_nodes():
                 for object_index, object in enumerate(bpy.data.objects):
                     object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset)
                     last_offset += len(object.name) * 16 + 50
-                    mesh_node = meshes_nodes[object.data.name]
-                    mesh_node.parents.append(object_node)
-                    object_node.children.append(mesh_node)
+                    if object.type == 'MESH':
+                        mesh_node = meshes_nodes[object.data.name]
+                        mesh_node.parents.append(object_node)
+                        object_node.children.append(mesh_node)
                     for scene in object.users_scene:
                         scene_node = scene_nodes[scene.name]
                         scene_node.children.append(object_node)
