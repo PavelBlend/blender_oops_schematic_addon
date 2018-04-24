@@ -31,7 +31,7 @@ font_id = 0
 
 
 def draw_line(root_index, child_index, layer):
-    bgl.glColor4f(0, 0, 0, 0.5)
+    bgl.glColor4f(0, 0, 0, 1.0)
 
     bgl.glBegin(bgl.GL_LINES)
     bgl.glVertex2f(root_index * 300, layer * 200 + 50)
@@ -40,7 +40,7 @@ def draw_line(root_index, child_index, layer):
 
 
 def draw_node(r, g, b, text, index, layer):
-    bgl.glColor4f(r, g, b, 0.5)
+    bgl.glColor4f(r, g, b, 1.0)
 
     bgl.glBegin(bgl.GL_QUADS)
     bgl.glVertex2f(index * 300, layer * 200)
@@ -60,16 +60,15 @@ def draw_scene_nodes():
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'SceneTreeType':
-                bgl.glEnable(bgl.GL_BLEND)
-                bgl.glLineWidth(2)
 
                 for scene_index, scene in enumerate(bpy.data.scenes):
                     for object_scene_index, object in enumerate(scene.objects):
                         draw_line(scene_index, bpy.data.objects.find(object.name), 0)
-                        draw_line(bpy.data.objects.find(object.name), bpy.data.meshes.find(object.data.name), 1)
+                        if object.type == 'MESH':
+                            draw_line(bpy.data.objects.find(object.name), bpy.data.meshes.find(object.data.name), 1)
 
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    draw_node(0.2, 0.2, 0.8, scene.name, scene_index, 0)
+                    draw_node(0.2, 0.4, 0.8, scene.name, scene_index, 0)
                 for object_index, object in enumerate(bpy.data.objects):
                     draw_node(0.8, 0.4, 0.2, object.name, object_index, 1)
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
