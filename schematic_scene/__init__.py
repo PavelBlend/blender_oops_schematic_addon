@@ -88,7 +88,7 @@ def draw_scene_nodes():
                     scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0)
                     for object_scene_index, object in enumerate(scene.objects):
 
-                        object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_scene_index, 1)
+                        object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), bpy.data.objects.find(object.name), 1)
                         object_node.parents.append(scene_node)
 
                         if object.type == 'MESH':
