@@ -43,37 +43,41 @@ class SchematicNode:
         self.index = index
         self.layer = layer
 
-    def draw(self):
+    def draw(self, last_offsets, last_offsets_child):
 
-        def _draw_line():
+        def _draw_line(last_offsets, last_offsets_child):
             bgl.glColor3f(0, 0, 0)
 
             for child in self.children:
                 bgl.glBegin(bgl.GL_LINES)
-                bgl.glVertex2f(self.index * 300 + len(self.text) * 8, (self.layer) * 200 + 50)
-                bgl.glVertex2f(child.index * 300 + len(child.text) * 8, (self.layer) * 200 + 200)
+                bgl.glVertex2f(last_offsets[self.layer] + len(self.text) * 8, (self.layer) * 200 + 50)
+                bgl.glVertex2f(last_offsets_child[self.layer + 1] + len(child.text) * 8, (self.layer) * 200 + 200)
                 bgl.glEnd()
+                last_offsets_child[self.layer + 1] += len(child.text) * 16 + 50
 
-        def _draw_box():
+        def _draw_box(last_offsets):
             bgl.glColor3f(*self.color)
 
             bgl.glBegin(bgl.GL_QUADS)
-            bgl.glVertex2f(self.index * 300, self.layer * 200)
-            bgl.glVertex2f(self.index * 300, self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + self.index * 300, self.layer * 200 + 50)
-            bgl.glVertex2f(len(self.text) * 16 + self.index * 300, self.layer * 200)
+            bgl.glVertex2f(last_offsets[self.layer], self.layer * 200)
+            bgl.glVertex2f(last_offsets[self.layer], self.layer * 200 + 50)
+            bgl.glVertex2f(len(self.text) * 16 + last_offsets[self.layer], self.layer * 200 + 50)
+            bgl.glVertex2f(len(self.text) * 16 + last_offsets[self.layer], self.layer * 200)
             bgl.glEnd()
 
-        def _draw_text():
+        def _draw_text(last_offsets):
             bgl.glColor3f(0, 0, 0)
 
-            blf.position(font_id, self.index * 300, self.layer * 200 + 16, 0)
+            blf.position(font_id, last_offsets[self.layer], self.layer * 200 + 16, 0)
             blf.size(font_id, 30, 64)
             blf.draw(font_id, self.text)
 
-        _draw_line()
-        _draw_box()
-        _draw_text()
+        _draw_line(last_offsets, last_offsets_child)
+        _draw_box(last_offsets)
+        _draw_text(last_offsets)
+        last_offsets[self.layer] += len(self.text) * 16 + 50
+
+        return last_offsets, last_offsets_child
 
 
 def draw_scene_nodes():
@@ -110,8 +114,10 @@ def draw_scene_nodes():
                         mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), bpy.data.meshes.find(mesh.name), 2)
                         schematic_nodes.append(mesh_node)
 
+                last_offsets = {0: 0, 1: 0, 2: 0}
+                last_offsets_child = {0: 0, 1: 0, 2: 0}
                 for schematic_node in schematic_nodes:
-                    schematic_node.draw()
+                    last_offsets, last_offsets_child = schematic_node.draw(last_offsets, last_offsets_child)
 
 
 def register():
