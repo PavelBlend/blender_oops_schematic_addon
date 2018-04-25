@@ -48,13 +48,13 @@ class SchematicNode:
         self.layer = layer
         self.offset_x = offset_x
         self.active = False
-        self.active_child_name = None
+        self.active_child_name = []
 
     def draw(self):
 
         def _draw_line():
             for child in self.children:
-                if self.active and child.text == self.active_child_name:
+                if self.active and child.text in self.active_child_name:
                     bgl.glColor3f(1, 1, 0)
                 else:
                     bgl.glColor3f(0, 0, 0)
@@ -95,6 +95,14 @@ def draw_scene_nodes():
                 object_nodes = {}
                 scene_nodes = {}
                 meshes_nodes = {}
+                materials_nodes = {}
+
+                last_offset = 0
+                for material_index, material in enumerate(bpy.data.materials):
+                    material_node = SchematicNode(0, 0, 0, 0, material.name, (0.8, 0.2, 0.2), material_index, 3, last_offset)
+                    last_offset += len(material.name) * char_size + x_distance
+                    materials_nodes[material.name] = material_node
+                    schematic_nodes.append(material_node)
 
                 last_offset = 0
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
@@ -102,6 +110,11 @@ def draw_scene_nodes():
                     last_offset += len(mesh.name) * char_size + x_distance
                     meshes_nodes[mesh.name] = mesh_node
                     schematic_nodes.append(mesh_node)
+                    for material in mesh.materials:
+                        if material:
+                            material_node = materials_nodes[material.name]
+                            material_node.parents.append(mesh_node)
+                            mesh_node.children.append(material_node)
 
                 last_offset = 0
                 for scene_index, scene in enumerate(bpy.data.scenes):
@@ -120,23 +133,27 @@ def draw_scene_nodes():
                     last_offset += len(object.name) * char_size + x_distance
                     if object.name == active_object_name:
                         object_node.active = True
-                        object_node.active_child_name = object.data.name
-                        object_node.color = (1.0, 0.6, 0.3)
+                        object_node.active_child_name.append(object.data.name)
+                        object_node.color = (1.0, 0.8, 0.4)
                     if object.type == 'MESH':
                         mesh_node = meshes_nodes[object.data.name]
                         mesh_node.parents.append(object_node)
                         object_node.children.append(mesh_node)
                         if object.name == active_object_name:
                             mesh_node.active = True
-                            mesh_node.color = (0.9, 0.9, 0.9)
+                            mesh_node.color = (1.0, 1.0, 1.0)
+                            for material_node in mesh_node.children:
+                                material_node.active = True
+                                mesh_node.active_child_name.append(material_node.text)
+                                material_node.color = (1.0, 0.5, 0.5)
                     for scene in object.users_scene:
                         scene_node = scene_nodes[scene.name]
                         scene_node.children.append(object_node)
                         object_node.parents.append(scene_node)
                         if object.name == active_object_name:
                             scene_node.active = True
-                            scene_node.active_child_name = active_object_name
-                            scene_node.color = (0.3, 0.6, 1.0)
+                            scene_node.active_child_name.append(active_object_name)
+                            scene_node.color = (0.4, 0.6, 1.0)
                     object_nodes[object.name] = object_node
                     schematic_nodes.append(object_node)
 
