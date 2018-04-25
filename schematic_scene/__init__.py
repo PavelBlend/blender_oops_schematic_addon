@@ -37,17 +37,12 @@ class SceneNodeTree(NodeTree):
 
 
 class SchematicNode:
-    def __init__(self, position_x, position_y, size_x, size_y, text, color, index, layer, offset_x, offset_y):
+    def __init__(self, text, color, index, offset_x, offset_y):
         self.children = []
         self.parents = []
-        self.position_x = position_x
-        self.position_y = position_y
-        self.size_x = size_x
-        self.size_y = size_y
         self.text = text
         self.color = color
         self.index = index
-        self.layer = layer
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.active = False
@@ -113,27 +108,13 @@ def draw_scene_nodes():
                 meshes_nodes = {}
                 materials_nodes = {}
 
-                last_offset_x = 0
-                last_offset_y = 0
                 for material_index, material in enumerate(bpy.data.materials):
-                    material_node = SchematicNode(0, 0, 0, 0, material.name, (0.8, 0.2, 0.2), material_index, 3, last_offset_x, last_offset_y)
-                    if last_offset_x < 1000:
-                        last_offset_x += len(material.name) * char_size + x_distance
-                    else:
-                        last_offset_x = 0
-                        last_offset_y += y_distance
+                    material_node = SchematicNode(material.name, (0.8, 0.2, 0.2), material_index, 0, 0)
                     materials_nodes[material.name] = material_node
                     schematic_nodes[3].append(material_node)
 
-                last_offset_x = 0
-                last_offset_y += y_distance
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
-                    mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), mesh_index, 2, last_offset_x, last_offset_y)
-                    if last_offset_x < 1000:
-                        last_offset_x += len(mesh.name) * char_size + x_distance
-                    else:
-                        last_offset_x = 0
-                        last_offset_y += y_distance
+                    mesh_node = SchematicNode(mesh.name, (0.6, 0.6, 0.6), mesh_index, 0, 0)
                     meshes_nodes[mesh.name] = mesh_node
                     schematic_nodes[2].append(mesh_node)
                     for material in mesh.materials:
@@ -142,15 +123,8 @@ def draw_scene_nodes():
                             material_node.parents.append(mesh_node)
                             mesh_node.children.append(material_node)
 
-                last_offset_x = 0
-                last_offset_y += y_distance
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0, last_offset_x, last_offset_y)
-                    if last_offset_x < 1000:
-                        last_offset_x += len(scene.name) * char_size + x_distance
-                    else:
-                        last_offset_x = 0
-                        last_offset_y += y_distance
+                    scene_node = SchematicNode(scene.name, (0.2, 0.4, 0.8), scene_index, 0, 0)
                     scene_nodes[scene.name] = scene_node
                     schematic_nodes[0].append(scene_node)
 
@@ -159,15 +133,8 @@ def draw_scene_nodes():
                 else:
                     active_object_name = None
 
-                last_offset_x = 0
-                last_offset_y += y_distance
                 for object_index, object in enumerate(bpy.data.objects):
-                    object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset_x, last_offset_y)
-                    if last_offset_x < 1000:
-                        last_offset_x += len(object.name) * char_size + x_distance
-                    else:
-                        last_offset_x = 0
-                        last_offset_y += y_distance
+                    object_node = SchematicNode(object.name, (0.8, 0.4, 0.2), object_index, 0, 0)
                     if object.name == active_object_name:
                         object_node.active = True
                         object_node.active_child_name.append(object.data.name)
