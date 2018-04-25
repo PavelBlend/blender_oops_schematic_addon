@@ -55,7 +55,7 @@ class SchematicNode:
 
         def _draw_line():
             for child in self.children:
-                # Vertices colculation
+                # Vertices calculation
                 start = Vector((self.offset_x + len(self.text) * (char_size / 2), (self.layer) * y_distance + node_hight))
                 finish = Vector((child.offset_x + len(child.text) * (char_size / 2), (self.layer) * y_distance + y_distance))
                 handle1 = start.copy()
