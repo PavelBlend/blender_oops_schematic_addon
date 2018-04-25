@@ -25,7 +25,7 @@ from mathutils import Vector
 # font_id = blf.load(font_path)
 font_id = 0
 char_size = 8
-y_distance = 100
+y_distance = 50
 x_distance = 25
 node_hight = 25
 
@@ -37,7 +37,7 @@ class SceneNodeTree(NodeTree):
 
 
 class SchematicNode:
-    def __init__(self, position_x, position_y, size_x, size_y, text, color, index, layer, offset_x):
+    def __init__(self, position_x, position_y, size_x, size_y, text, color, index, layer, offset_x, offset_y):
         self.children = []
         self.parents = []
         self.position_x = position_x
@@ -49,6 +49,7 @@ class SchematicNode:
         self.index = index
         self.layer = layer
         self.offset_x = offset_x
+        self.offset_y = offset_y
         self.active = False
         self.active_child_name = []
 
@@ -57,17 +58,19 @@ class SchematicNode:
         def _draw_line():
             for child in self.children:
                 # Vertices calculation
-                start = Vector((self.offset_x + len(self.text) * (char_size / 2), (self.layer) * y_distance + node_hight))
-                finish = Vector((child.offset_x + len(child.text) * (char_size / 2), (self.layer) * y_distance + y_distance))
+                start = Vector((self.offset_x + len(self.text) * (char_size / 2), self.offset_y + node_hight))
+                finish = Vector((child.offset_x + len(child.text) * (char_size / 2), child.offset_y))
                 handle1 = start.copy()
                 handle1.y += y_distance/4
                 handle2 = finish.copy()
                 handle2.y -= y_distance/4
                 vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, 40)]
                 # Color choosing
+                bgl.glLineWidth(1)
                 color = (0.5, 0.5, 0.5)
                 if self.active and child.text in self.active_child_name:
                     color = (1, 1, 0)
+                    bgl.glLineWidth(2)
                 # Drawing
                 bgl.glColor3f(*color)
                 bgl.glBegin(bgl.GL_LINES)
@@ -80,16 +83,16 @@ class SchematicNode:
             bgl.glColor3f(*self.color)
 
             bgl.glBegin(bgl.GL_QUADS)
-            bgl.glVertex2f(self.offset_x, self.layer * y_distance)
-            bgl.glVertex2f(self.offset_x, self.layer * y_distance + node_hight)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.layer * y_distance + node_hight)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.layer * y_distance)
+            bgl.glVertex2f(self.offset_x, self.offset_y)
+            bgl.glVertex2f(self.offset_x, self.offset_y + node_hight)
+            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.offset_y + node_hight)
+            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.offset_y)
             bgl.glEnd()
 
         def _draw_text():
             bgl.glColor3f(0, 0, 0)
 
-            blf.position(font_id, self.offset_x, self.layer * y_distance + node_hight / 4, 0)
+            blf.position(font_id, self.offset_x, self.offset_y + node_hight / 4, 0)
             blf.blur(font_id, 0)
             blf.size(font_id, 30, 30)
             blf.draw(font_id, self.text)
@@ -104,46 +107,67 @@ def draw_scene_nodes():
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'SceneTreeType':
 
-                schematic_nodes = []
+                schematic_nodes = [[], [], [], []]
                 object_nodes = {}
                 scene_nodes = {}
                 meshes_nodes = {}
                 materials_nodes = {}
 
-                last_offset = 0
+                last_offset_x = 0
+                last_offset_y = 0
                 for material_index, material in enumerate(bpy.data.materials):
-                    material_node = SchematicNode(0, 0, 0, 0, material.name, (0.8, 0.2, 0.2), material_index, 3, last_offset)
-                    last_offset += len(material.name) * char_size + x_distance
+                    material_node = SchematicNode(0, 0, 0, 0, material.name, (0.8, 0.2, 0.2), material_index, 3, last_offset_x, last_offset_y)
+                    if last_offset_x < 1000:
+                        last_offset_x += len(material.name) * char_size + x_distance
+                    else:
+                        last_offset_x = 0
+                        last_offset_y += y_distance
                     materials_nodes[material.name] = material_node
-                    schematic_nodes.append(material_node)
+                    schematic_nodes[3].append(material_node)
 
-                last_offset = 0
+                last_offset_x = 0
+                last_offset_y += y_distance
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
-                    mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), mesh_index, 2, last_offset)
-                    last_offset += len(mesh.name) * char_size + x_distance
+                    mesh_node = SchematicNode(0, 0, 0, 0, mesh.name, (0.6, 0.6, 0.6), mesh_index, 2, last_offset_x, last_offset_y)
+                    if last_offset_x < 1000:
+                        last_offset_x += len(mesh.name) * char_size + x_distance
+                    else:
+                        last_offset_x = 0
+                        last_offset_y += y_distance
                     meshes_nodes[mesh.name] = mesh_node
-                    schematic_nodes.append(mesh_node)
+                    schematic_nodes[2].append(mesh_node)
                     for material in mesh.materials:
                         if material:
                             material_node = materials_nodes[material.name]
                             material_node.parents.append(mesh_node)
                             mesh_node.children.append(material_node)
 
-                last_offset = 0
+                last_offset_x = 0
+                last_offset_y += y_distance
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0, last_offset)
-                    last_offset += len(scene.name) * char_size + x_distance
+                    scene_node = SchematicNode(0, 0, 0, 0, scene.name, (0.2, 0.4, 0.8), scene_index, 0, last_offset_x, last_offset_y)
+                    if last_offset_x < 1000:
+                        last_offset_x += len(scene.name) * char_size + x_distance
+                    else:
+                        last_offset_x = 0
+                        last_offset_y += y_distance
                     scene_nodes[scene.name] = scene_node
-                    schematic_nodes.append(scene_node)
+                    schematic_nodes[0].append(scene_node)
 
                 if bpy.context.scene.objects.active:
                     active_object_name = bpy.context.scene.objects.active.name
                 else:
                     active_object_name = None
-                last_offset = 0
+
+                last_offset_x = 0
+                last_offset_y += y_distance
                 for object_index, object in enumerate(bpy.data.objects):
-                    object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset)
-                    last_offset += len(object.name) * char_size + x_distance
+                    object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset_x, last_offset_y)
+                    if last_offset_x < 1000:
+                        last_offset_x += len(object.name) * char_size + x_distance
+                    else:
+                        last_offset_x = 0
+                        last_offset_y += y_distance
                     if object.name == active_object_name:
                         object_node.active = True
                         object_node.active_child_name.append(object.data.name)
@@ -168,10 +192,24 @@ def draw_scene_nodes():
                             scene_node.active_child_name.append(active_object_name)
                             scene_node.color = (0.4, 0.6, 1.0)
                     object_nodes[object.name] = object_node
-                    schematic_nodes.append(object_node)
+                    schematic_nodes[1].append(object_node)
 
-                for schematic_node in schematic_nodes:
-                    schematic_node.draw()
+                last_offset_x = 0
+                last_offset_y = 0
+                for schematic_nodes_group in schematic_nodes:
+                    for schematic_node in schematic_nodes_group:
+                        if last_offset_x > 1000:
+                            last_offset_x = 0
+                            last_offset_y += y_distance
+                        schematic_node.offset_x = last_offset_x
+                        schematic_node.offset_y = last_offset_y
+                        last_offset_x += len(schematic_node.text) * char_size + x_distance
+                    last_offset_x = 0
+                    last_offset_y += y_distance
+
+                for schematic_nodes_group in schematic_nodes:
+                    for schematic_node in schematic_nodes_group:
+                        schematic_node.draw()
 
 
 def register():
