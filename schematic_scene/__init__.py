@@ -1,7 +1,7 @@
 
 bl_info = {
     'name':     'Schematic Scene',
-    'author':   'Pavel_Blend',
+    'author':   'Pavel_Blend, Bibo',
     'version':  (0, 0, 0),
     'blender':  (2, 79, 0),
     'category': 'Node',
