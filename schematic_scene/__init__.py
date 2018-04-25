@@ -47,13 +47,17 @@ class SchematicNode:
         self.index = index
         self.layer = layer
         self.offset_x = offset_x
+        self.active = False
+        self.active_child_name = None
 
     def draw(self):
 
         def _draw_line():
-            bgl.glColor3f(0, 0, 0)
-
             for child in self.children:
+                if self.active and child.text == self.active_child_name:
+                    bgl.glColor3f(1, 1, 0)
+                else:
+                    bgl.glColor3f(0, 0, 0)
                 bgl.glBegin(bgl.GL_LINES)
                 bgl.glVertex2f(self.offset_x + len(self.text) * (char_size / 2), (self.layer) * y_distance + node_hight)
                 bgl.glVertex2f(child.offset_x + len(child.text) * (char_size / 2), (self.layer) * y_distance + y_distance)
@@ -106,18 +110,33 @@ def draw_scene_nodes():
                     scene_nodes[scene.name] = scene_node
                     schematic_nodes.append(scene_node)
 
+                if bpy.context.scene.objects.active:
+                    active_object_name = bpy.context.scene.objects.active.name
+                else:
+                    active_object_name = None
                 last_offset = 0
                 for object_index, object in enumerate(bpy.data.objects):
                     object_node = SchematicNode(0, 0, 0, 0, object.name, (0.8, 0.4, 0.2), object_index, 1, last_offset)
                     last_offset += len(object.name) * char_size + x_distance
+                    if object.name == active_object_name:
+                        object_node.active = True
+                        object_node.active_child_name = object.data.name
+                        object_node.color = (1.0, 0.6, 0.3)
                     if object.type == 'MESH':
                         mesh_node = meshes_nodes[object.data.name]
                         mesh_node.parents.append(object_node)
                         object_node.children.append(mesh_node)
+                        if object.name == active_object_name:
+                            mesh_node.active = True
+                            mesh_node.color = (0.9, 0.9, 0.9)
                     for scene in object.users_scene:
                         scene_node = scene_nodes[scene.name]
                         scene_node.children.append(object_node)
                         object_node.parents.append(scene_node)
+                        if object.name == active_object_name:
+                            scene_node.active = True
+                            scene_node.active_child_name = active_object_name
+                            scene_node.color = (0.3, 0.6, 1.0)
                     object_nodes[object.name] = object_node
                     schematic_nodes.append(object_node)
 
