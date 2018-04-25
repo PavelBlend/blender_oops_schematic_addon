@@ -16,7 +16,8 @@ import bpy
 import bgl
 import blf
 from bpy.types import NodeTree
-
+from mathutils.geometry import interpolate_bezier
+from mathutils import Vector
 
 # dir_path = os.path.abspath(os.path.dirname(__file__)) + os.sep
 # font_path = dir_path + 'bmonofont-i18n.ttf'
@@ -54,13 +55,24 @@ class SchematicNode:
 
         def _draw_line():
             for child in self.children:
+                # Vertices colculation
+                start = Vector((self.offset_x + len(self.text) * (char_size / 2), (self.layer) * y_distance + node_hight))
+                finish = Vector((child.offset_x + len(child.text) * (char_size / 2), (self.layer) * y_distance + y_distance))
+                handle1 = start.copy()
+                handle1.y += y_distance/4
+                handle2 = finish.copy()
+                handle2.y -= y_distance/4
+                vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, 40)]
+                # Color choosing
+                color = (0.5, 0.5, 0.5)
                 if self.active and child.text in self.active_child_name:
-                    bgl.glColor3f(1, 1, 0)
-                else:
-                    bgl.glColor3f(0, 0, 0)
+                    color = (1, 1, 0)
+                # Drawing
+                bgl.glColor3f(*color)
                 bgl.glBegin(bgl.GL_LINES)
-                bgl.glVertex2f(self.offset_x + len(self.text) * (char_size / 2), (self.layer) * y_distance + node_hight)
-                bgl.glVertex2f(child.offset_x + len(child.text) * (char_size / 2), (self.layer) * y_distance + y_distance)
+                for i in range(len(vertices)-1):
+                    bgl.glVertex2f(vertices[i].x, vertices[i].y)
+                    bgl.glVertex2f(vertices[i+1].x, vertices[i+1].y)
                 bgl.glEnd()
 
         def _draw_box():
