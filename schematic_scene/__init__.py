@@ -137,7 +137,8 @@ def draw_scene_nodes():
                     object_node = SchematicNode(object.name, (0.8, 0.4, 0.2), object_index, 0, 0)
                     if object.name == active_object_name:
                         object_node.active = True
-                        object_node.active_child_name.append(object.data.name)
+                        if object.type == 'MESH':
+                            object_node.active_child_name.append(object.data.name)
                         object_node.color = (1.0, 0.8, 0.4)
                     if object.type == 'MESH':
                         mesh_node = meshes_nodes[object.data.name]
