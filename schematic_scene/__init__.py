@@ -56,9 +56,9 @@ class SchematicNode:
                 start = Vector((self.offset_x + len(self.text) * (char_size / 2), self.offset_y + node_hight))
                 finish = Vector((child.offset_x + len(child.text) * (char_size / 2), child.offset_y))
                 handle1 = start.copy()
-                handle1.y += y_distance/4
+                handle1.y += (child.offset_y - self.offset_y) / 4
                 handle2 = finish.copy()
-                handle2.y -= y_distance/4
+                handle2.y -= (child.offset_y - self.offset_y) / 4
                 vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, 40)]
                 # Color choosing
                 bgl.glLineWidth(1)
