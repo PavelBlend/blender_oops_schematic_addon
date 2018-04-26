@@ -294,6 +294,8 @@ def init_properties():
 
 def clear_properties():
     del bpy.types.WindowManager.show_schematic_scene
+    del bpy.types.WindowManager.click_x
+    del bpy.types.WindowManager.click_y
 
 
 def draw_operator(self, context):
