@@ -151,9 +151,11 @@ def draw_scene_nodes():
                 else:
                     active_object_name = None
 
+                has_active_node = False
                 for object_index, object in enumerate(bpy.data.objects):
                     object_node = SchematicNode(object.name, [0.8, 0.4, 0.2], object_index, 0, 0)
                     if object.name == active_object_name:
+                        has_active_node = True
                         object_node.active = True
                         if object.type == 'MESH':
                             object_node.active_child_name.append(object.data.name)
@@ -214,7 +216,7 @@ def draw_scene_nodes():
                         schematic_node.offset_y = last_offset_y
                         node_size_x = len(schematic_node.text) * char_size + x_distance
                         if last_offset_x < click_x < (last_offset_x + node_size_x) and \
-                                last_offset_y < click_y < (last_offset_y + node_hight):
+                                last_offset_y < click_y < (last_offset_y + node_hight) and not has_active_node:
                             schematic_node.active = True
                             schematic_node.color[0] += 0.2
                             schematic_node.color[1] += 0.2
