@@ -31,6 +31,7 @@ node_hight = 25
 click_x = -1000
 click_y = -1000
 BORDER_SIZE = 4
+operator_text = 'Show Schematic Scene'
 
 
 class SceneNodeTree(NodeTree):
@@ -229,6 +230,9 @@ def draw_scene_nodes():
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw()
 
+                click_x = -1000
+                click_y = -1000
+
 
 class ShowSchematicScene(bpy.types.Operator):
     bl_idname = "node.show_schematics_scene"
@@ -246,6 +250,9 @@ class ShowSchematicScene(bpy.types.Operator):
         if ShowSchematicScene._handle is not None:
             bpy.types.SpaceNodeEditor.draw_handler_remove(ShowSchematicScene._handle, 'WINDOW')
         ShowSchematicScene._handle = None
+
+    def cancel(self, context):
+        self.handle_remove()
 
     def modal(self, context, event):
         if not context.window_manager.show_schematic_scene:
@@ -294,8 +301,6 @@ def draw_operator(self, context):
 
 
 def register():
-    global operator_text
-    operator_text = 'Show Schematic Scene'
     init_properties()
     bpy.utils.register_class(SceneNodeTree)
     bpy.utils.register_class(ShowSchematicScene)
