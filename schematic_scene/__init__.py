@@ -186,19 +186,21 @@ def draw_scene_nodes():
                 def _select_children(schematic_node):
                     for child in schematic_node.children:
                         schematic_node.active_child_name.append(child.text)
-                        child.active = True
-                        child.color[0] += 0.2
-                        child.color[1] += 0.2
-                        child.color[2] += 0.2
+                        if not child.active:
+                            child.active = True
+                            child.color[0] += 0.2
+                            child.color[1] += 0.2
+                            child.color[2] += 0.2
                         _select_children(child)
 
                 def _select_parents(schematic_node):
                     for parent in schematic_node.parents:
                         parent.active_child_name.append(schematic_node.text)
-                        parent.active = True
-                        parent.color[0] += 0.2
-                        parent.color[1] += 0.2
-                        parent.color[2] += 0.2
+                        if not parent.active:
+                            parent.active = True
+                            parent.color[0] += 0.2
+                            parent.color[1] += 0.2
+                            parent.color[2] += 0.2
                         _select_parents(parent)
 
                 last_offset_x = 0
@@ -240,6 +242,7 @@ class ShowSchematicScene(bpy.types.Operator):
     bl_description = ""
 
     _handle = None
+    operator_text = 'Show Schematic Scene'
 
     @staticmethod
     def handle_add():
@@ -257,20 +260,20 @@ class ShowSchematicScene(bpy.types.Operator):
     def modal(self, context, event):
         if not context.window_manager.show_schematic_scene:
             return {'CANCELLED'}
-        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK':
+        if event.type == 'LEFTMOUSE' and event.value == 'CLICK':
             area = context.area
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
                     if region.type == 'WINDOW':
                         global click_x, click_y
                         click_x, click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        context.object.select = False
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        global operator_text
         if not context.window_manager.show_schematic_scene:
-            operator_text = 'Hide Schematic Scene'
+            self.operator_text = 'Hide Schematic Scene'
             context.window_manager.show_schematic_scene = True
             if context.area.type == 'NODE_EDITOR':
                 self.handle_add()
@@ -278,7 +281,7 @@ class ShowSchematicScene(bpy.types.Operator):
                 context.window_manager.modal_handler_add(self)
                 return {'RUNNING_MODAL'}
         else:
-            operator_text = 'Show Schematic Scene'
+            self.operator_text = 'Show Schematic Scene'
             context.window_manager.show_schematic_scene = False
             self.handle_remove()
             context.area.tag_redraw()
@@ -296,8 +299,8 @@ def clear_properties():
 
 def draw_operator(self, context):
     if context.area.spaces[0].tree_type == 'SceneTreeType':
-        global operator_text
-        self.layout.operator('node.show_schematics_scene', operator_text)
+        self.layout.operator('node.show_schematics_scene', bpy.types.NODE_OT_show_schematics_scene.operator_text)
+        print(bpy.types.NODE_OT_show_schematics_scene.operator_text)
 
 
 def register():
