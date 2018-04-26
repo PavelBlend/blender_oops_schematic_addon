@@ -242,7 +242,7 @@ class ShowSchematicScene(bpy.types.Operator):
     bl_description = ""
 
     _handle = None
-    operator_text = 'Show Schematic Scene'
+    operator_text = 'Show/Hide Schematic Scene'
 
     @staticmethod
     def handle_add():
@@ -300,7 +300,6 @@ def clear_properties():
 def draw_operator(self, context):
     if context.area.spaces[0].tree_type == 'SceneTreeType':
         self.layout.operator('node.show_schematics_scene', bpy.types.NODE_OT_show_schematics_scene.operator_text)
-        print(bpy.types.NODE_OT_show_schematics_scene.operator_text)
 
 
 def register():
