@@ -180,11 +180,70 @@ def draw_scene_nodes():
                         schematic_node.draw()
 
 
+class ShowSchematicScene(bpy.types.Operator):
+    bl_idname = "node.show_schematics_scene"
+    bl_label = "Show Schematic Scene"
+    bl_description = ""
+
+    _handle = None
+
+    @staticmethod
+    def handle_add():
+        ShowSchematicScene._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_scene_nodes, (), 'WINDOW', 'POST_VIEW')
+
+    @staticmethod
+    def handle_remove():
+        if ShowSchematicScene._handle is not None:
+            bpy.types.SpaceNodeEditor.draw_handler_remove(ShowSchematicScene._handle, 'WINDOW')
+        ShowSchematicScene._handle = None
+
+    def modal(self, context, event):
+        if not context.window_manager.show_schematic_scene:
+            return {'CANCELLED'}
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        global operator_text
+        if not context.window_manager.show_schematic_scene:
+            operator_text = 'Hide Schematic Scene'
+            context.window_manager.show_schematic_scene = True
+            if context.area.type == 'NODE_EDITOR':
+                self.handle_add()
+                context.window_manager.modal_handler_add(self)
+                return {'RUNNING_MODAL'}
+        else:
+            operator_text = 'Show Schematic Scene'
+            context.window_manager.show_schematic_scene = False
+            self.handle_remove()
+            return {'CANCELLED'}
+
+
+def init_properties():
+    wm = bpy.types.WindowManager
+    wm.show_schematic_scene = bpy.props.BoolProperty(default=False)
+
+
+def clear_properties():
+    del bpy.types.WindowManager.show_schematic_scene
+
+
+def draw_operator(self, context):
+    if context.area.spaces[0].tree_type == 'SceneTreeType':
+        global operator_text
+        self.layout.operator('node.show_schematics_scene', operator_text)
+
+
 def register():
+    global operator_text
+    operator_text = 'Show Schematic Scene'
+    init_properties()
     bpy.utils.register_class(SceneNodeTree)
-    draw_scene_nodes.__handler = bpy.types.SpaceNodeEditor.draw_handler_add(draw_scene_nodes, (), 'WINDOW', 'POST_VIEW')
+    bpy.utils.register_class(ShowSchematicScene)
+    bpy.types.NODE_HT_header.append(draw_operator)
 
 
 def unregister():
-    bpy.types.SpaceNodeEditor.draw_handler_remove(draw_scene_nodes.__handler, 'WINDOW')
+    bpy.types.NODE_HT_header.remove(draw_operator)
+    bpy.utils.unregister_class(ShowSchematicScene)
     bpy.utils.unregister_class(SceneNodeTree)
+    clear_properties()
