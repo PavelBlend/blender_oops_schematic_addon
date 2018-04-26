@@ -28,8 +28,6 @@ char_size = 8
 y_distance = 50
 x_distance = 25
 node_hight = 25
-click_x = -1000
-click_y = -1000
 BORDER_SIZE = 4
 operator_text = 'Show Schematic Scene'
 
@@ -205,8 +203,8 @@ def draw_scene_nodes():
 
                 last_offset_x = 0
                 last_offset_y = 0
-                global click_x
-                global click_y
+                click_x = bpy.context.window_manager.click_x
+                click_y = bpy.context.window_manager.click_y
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         if last_offset_x > 1000:
@@ -231,9 +229,6 @@ def draw_scene_nodes():
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw()
-
-                click_x = -1000
-                click_y = -1000
 
 
 class ShowSchematicScene(bpy.types.Operator):
@@ -265,8 +260,7 @@ class ShowSchematicScene(bpy.types.Operator):
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
                     if region.type == 'WINDOW':
-                        global click_x, click_y
-                        click_x, click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        context.window_manager.click_x, context.window_manager.click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
                         context.object.select = False
                         region.tag_redraw()
         return {'PASS_THROUGH'}
@@ -291,6 +285,8 @@ class ShowSchematicScene(bpy.types.Operator):
 def init_properties():
     wm = bpy.types.WindowManager
     wm.show_schematic_scene = bpy.props.BoolProperty(default=False)
+    wm.click_x = bpy.props.FloatProperty(default=-1000.0)
+    wm.click_y = bpy.props.FloatProperty(default=-1000.0)
 
 
 def clear_properties():
