@@ -261,7 +261,8 @@ class ShowSchematicScene(bpy.types.Operator):
                 for region in area.regions:
                     if region.type == 'WINDOW':
                         context.window_manager.click_x, context.window_manager.click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
-                        context.object.select = False
+                        if context.object:
+                            context.object.select = False
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
