@@ -209,7 +209,7 @@ def draw_schematic_scene():
                 click_y = bpy.context.window_manager.schematic_scene_click_y
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
-                        if last_offset_x > 1000:
+                        if last_offset_x > bpy.context.window_manager.schematic_scene_tree_width:
                             last_offset_x = 0
                             last_offset_y += Y_DISTANCE
                         schematic_node.offset_x = last_offset_x
@@ -291,6 +291,7 @@ class SchematicScenePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.prop(context.window_manager, 'schematic_scene_3d_view_select')
+        layout.prop(context.window_manager, 'schematic_scene_tree_width')
 
 
 def init_properties():
@@ -299,6 +300,7 @@ def init_properties():
     wm.schematic_scene_3d_view_select = bpy.props.BoolProperty(name='3D View Select', default=False)
     wm.schematic_scene_click_x = bpy.props.FloatProperty(default=-1000.0)
     wm.schematic_scene_click_y = bpy.props.FloatProperty(default=-1000.0)
+    wm.schematic_scene_tree_width = bpy.props.FloatProperty(name='Tree Width', default=1000.0)
 
 
 def clear_properties():
@@ -306,6 +308,7 @@ def clear_properties():
     del bpy.types.WindowManager.schematic_scene_3d_view_select
     del bpy.types.WindowManager.schematic_scene_click_x
     del bpy.types.WindowManager.schematic_scene_click_y
+    del bpy.types.WindowManager.schematic_scene_tree_width
 
 
 def draw_operator(self, context):
