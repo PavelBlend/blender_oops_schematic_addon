@@ -5,12 +5,9 @@ bl_info = {
     'version':  (0, 0, 0),
     'blender':  (2, 79, 0),
     'category': 'Node',
-    'location': 'Node Editor > Scene Nodes'
+    'location': 'Node Editor > Schematic Scene'
 }
 
-
-import os
-import time
 
 import bpy
 import bgl
@@ -20,33 +17,29 @@ from mathutils.geometry import interpolate_bezier
 from mathutils import Vector
 
 
-# dir_path = os.path.abspath(os.path.dirname(__file__)) + os.sep
-# font_path = dir_path + 'bmonofont-i18n.ttf'
-# font_id = blf.load(font_path)
-font_id = 0
-char_size = 8
-y_distance = 50
-x_distance = 25
-node_hight = 25
+FONT_ID = 0
+CHAR_SIZE = 8
+X_DISTANCE = 25
+Y_DISTANCE = 50
+NODE_HIGHT = 25
 BORDER_SIZE = 4
-operator_text = 'Show Schematic Scene'
 
 
 class SceneNodeTree(NodeTree):
-    bl_idname = 'SceneTreeType'
-    bl_label = 'Scene Node Tree'
+    bl_idname = 'SchematicScene'
+    bl_label = 'Schematic Scene'
     bl_icon = 'SCENE_DATA'
 
 
 class SchematicNode:
-    def __init__(self, text, color, index, offset_x, offset_y):
+    def __init__(self, text, color, index):
         self.children = []
         self.parents = []
         self.text = text
         self.color = color
         self.index = index
-        self.offset_x = offset_x
-        self.offset_y = offset_y
+        self.offset_x = 0
+        self.offset_y = 0
         self.active = False
         self.active_child_name = []
         self.border_select = False
@@ -56,8 +49,8 @@ class SchematicNode:
         def _draw_line():
             for child in self.children:
                 # Vertices calculation
-                start = Vector((self.offset_x + len(self.text) * (char_size / 2), self.offset_y + node_hight))
-                finish = Vector((child.offset_x + len(child.text) * (char_size / 2), child.offset_y))
+                start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
+                finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
                 handle1 = start.copy()
                 handle1.y += (child.offset_y - self.offset_y) / 4
                 handle2 = finish.copy()
@@ -82,9 +75,9 @@ class SchematicNode:
 
             bgl.glBegin(bgl.GL_QUADS)
             bgl.glVertex2f(self.offset_x, self.offset_y)
-            bgl.glVertex2f(self.offset_x, self.offset_y + node_hight)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.offset_y + node_hight)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x, self.offset_y)
+            bgl.glVertex2f(self.offset_x, self.offset_y + NODE_HIGHT)
+            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y + NODE_HIGHT)
+            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y)
             bgl.glEnd()
 
         def _draw_border_box():
@@ -92,18 +85,18 @@ class SchematicNode:
 
             bgl.glBegin(bgl.GL_QUADS)
             bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y - BORDER_SIZE)
-            bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y + node_hight + BORDER_SIZE)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x + BORDER_SIZE, self.offset_y + node_hight + BORDER_SIZE)
-            bgl.glVertex2f(len(self.text) * char_size + self.offset_x + BORDER_SIZE, self.offset_y - BORDER_SIZE)
+            bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
+            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
+            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y - BORDER_SIZE)
             bgl.glEnd()
 
         def _draw_text():
             bgl.glColor3f(0, 0, 0)
 
-            blf.position(font_id, self.offset_x, self.offset_y + node_hight / 4, 0)
-            blf.blur(font_id, 0)
-            blf.size(font_id, 30, 30)
-            blf.draw(font_id, self.text)
+            blf.position(FONT_ID, self.offset_x, self.offset_y + NODE_HIGHT / 4, 0)
+            blf.blur(FONT_ID, 0)
+            blf.size(FONT_ID, 30, 30)
+            blf.draw(FONT_ID, self.text)
 
         _draw_line()
         if self.border_select:
@@ -112,76 +105,56 @@ class SchematicNode:
         _draw_text()
 
 
-def draw_scene_nodes():
+SCENE_NODE_COLOR = [0.2, 0.4, 0.8]
+OBJECT_NODE_COLOR = [0.8, 0.4, 0.2]
+MESH_NODE_COLOR = [0.6, 0.6, 0.6]
+MATERIAL_NODE_COLOR = [0.8, 0.2, 0.2]
+
+
+def draw_schematic_scene():
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
-            if area.spaces[0].tree_type == 'SceneTreeType':
+            if area.spaces[0].tree_type == 'SchematicScene':
 
                 schematic_nodes = [[], [], [], []]
-                object_nodes = {}
                 scene_nodes = {}
                 meshes_nodes = {}
                 materials_nodes = {}
 
+                # Generate materials nodes
                 for material_index, material in enumerate(bpy.data.materials):
-                    material_node = SchematicNode(material.name, [0.8, 0.2, 0.2], material_index, 0, 0)
+                    material_node = SchematicNode(material.name, MATERIAL_NODE_COLOR.copy(), material_index)
                     materials_nodes[material.name] = material_node
                     schematic_nodes[3].append(material_node)
 
+                # Generate meshes nodes
                 for mesh_index, mesh in enumerate(bpy.data.meshes):
-                    mesh_node = SchematicNode(mesh.name, [0.6, 0.6, 0.6], mesh_index, 0, 0)
+                    mesh_node = SchematicNode(mesh.name, MESH_NODE_COLOR.copy(), mesh_index)
                     meshes_nodes[mesh.name] = mesh_node
                     schematic_nodes[2].append(mesh_node)
+
+                    # Assign Children and Parents
                     for material in mesh.materials:
                         if material:
                             material_node = materials_nodes[material.name]
                             material_node.parents.append(mesh_node)
                             mesh_node.children.append(material_node)
 
+                # Generate scenes nodes
                 for scene_index, scene in enumerate(bpy.data.scenes):
-                    scene_node = SchematicNode(scene.name, [0.2, 0.4, 0.8], scene_index, 0, 0)
+                    scene_node = SchematicNode(scene.name, SCENE_NODE_COLOR.copy(), scene_index)
                     scene_nodes[scene.name] = scene_node
                     schematic_nodes[0].append(scene_node)
 
-                if bpy.context.scene.objects.active and bpy.context.window_manager.schematic_scene_3d_view_select:
-                    if bpy.context.scene.objects.active.select:
-                        active_object_name = bpy.context.scene.objects.active.name
+                # Set active object name
+                context_object = bpy.context.scene.objects.active
+                if context_object and bpy.context.window_manager.schematic_scene_3d_view_select:
+                    if context_object.select:
+                        active_object_name = context_object.name
                     else:
                         active_object_name = None
                 else:
                     active_object_name = None
-
-                has_active_node = False
-                for object_index, object in enumerate(bpy.data.objects):
-                    object_node = SchematicNode(object.name, [0.8, 0.4, 0.2], object_index, 0, 0)
-                    if object.name == active_object_name:
-                        has_active_node = True
-                        object_node.active = True
-                        if object.type == 'MESH':
-                            object_node.active_child_name.append(object.data.name)
-                        object_node.color = [1.0, 0.6, 0.4]
-                        object_node.border_select = True
-                    if object.type == 'MESH':
-                        mesh_node = meshes_nodes[object.data.name]
-                        mesh_node.parents.append(object_node)
-                        object_node.children.append(mesh_node)
-                        if object.name == active_object_name:
-                            mesh_node.active = True
-                            mesh_node.color = [0.8, 0.8, 0.8]
-                            for material_node in mesh_node.children:
-                                material_node.active = True
-                                mesh_node.active_child_name.append(material_node.text)
-                                material_node.color = [1.0, 0.4, 0.4]
-                    for scene in object.users_scene:
-                        scene_node = scene_nodes[scene.name]
-                        scene_node.children.append(object_node)
-                        object_node.parents.append(scene_node)
-                        if object.name == active_object_name:
-                            scene_node.active = True
-                            scene_node.active_child_name.append(active_object_name)
-                            scene_node.color = [0.4, 0.6, 1.0]
-                    object_nodes[object.name] = object_node
-                    schematic_nodes[1].append(object_node)
 
                 def _select_children(schematic_node):
                     for child in schematic_node.children:
@@ -203,20 +176,47 @@ def draw_scene_nodes():
                             parent.color[2] += 0.2
                         _select_parents(parent)
 
+                # Generate objects nodes
+                for object_index, object in enumerate(bpy.data.objects):
+                    object_node = SchematicNode(object.name, OBJECT_NODE_COLOR.copy(), object_index)
+
+                    # Assign Children and Parents
+                    if object.type == 'MESH':
+                        mesh_node = meshes_nodes[object.data.name]
+                        mesh_node.parents.append(object_node)
+                        object_node.children.append(mesh_node)
+                    for scene in object.users_scene:
+                        scene_node = scene_nodes[scene.name]
+                        scene_node.children.append(object_node)
+                        object_node.parents.append(scene_node)
+                    schematic_nodes[1].append(object_node)
+
+                    # Select Node
+                    if object.name == active_object_name:
+                        object_node.active = True
+                        object_node.color[0] += 0.2
+                        object_node.color[1] += 0.2
+                        object_node.color[2] += 0.2
+                        object_node.border_select = True
+                        _select_children(object_node)
+                        _select_parents(object_node)
+
+                # Set Nodes Coordinates
                 last_offset_x = 0
                 last_offset_y = 0
-                click_x = bpy.context.window_manager.click_x
-                click_y = bpy.context.window_manager.click_y
+                click_x = bpy.context.window_manager.schematic_scene_click_x
+                click_y = bpy.context.window_manager.schematic_scene_click_y
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         if last_offset_x > 1000:
                             last_offset_x = 0
-                            last_offset_y += y_distance
+                            last_offset_y += Y_DISTANCE
                         schematic_node.offset_x = last_offset_x
                         schematic_node.offset_y = last_offset_y
-                        node_size_x = len(schematic_node.text) * char_size + x_distance
+                        # Select Node
+                        node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
                         if last_offset_x < click_x < (last_offset_x + node_size_x) and \
-                                last_offset_y < click_y < (last_offset_y + node_hight) and not has_active_node and \
+                                last_offset_y < click_y < (last_offset_y + NODE_HIGHT) and \
                                 not bpy.context.window_manager.schematic_scene_3d_view_select:
                             schematic_node.active = True
                             schematic_node.color[0] += 0.2
@@ -227,58 +227,54 @@ def draw_scene_nodes():
                             _select_parents(schematic_node)
                         last_offset_x += node_size_x
                     last_offset_x = 0
-                    last_offset_y += y_distance
+                    last_offset_y += Y_DISTANCE
 
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw()
 
 
-class ShowSchematicScene(bpy.types.Operator):
-    bl_idname = "node.show_schematics_scene"
-    bl_label = "Show Schematic Scene"
-    bl_description = ""
+class SchematicSceneShow(bpy.types.Operator):
+    bl_idname = "node.schematic_scene_show"
+    bl_label = "Show/Hide Schematic Scene"
 
     _handle = None
-    operator_text = 'Show/Hide Schematic Scene'
 
     @staticmethod
     def handle_add():
-        ShowSchematicScene._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_scene_nodes, (), 'WINDOW', 'POST_VIEW')
+        SchematicSceneShow._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_schematic_scene, (), 'WINDOW', 'POST_VIEW')
 
     @staticmethod
     def handle_remove():
-        if ShowSchematicScene._handle is not None:
-            bpy.types.SpaceNodeEditor.draw_handler_remove(ShowSchematicScene._handle, 'WINDOW')
-        ShowSchematicScene._handle = None
+        if SchematicSceneShow._handle is not None:
+            bpy.types.SpaceNodeEditor.draw_handler_remove(SchematicSceneShow._handle, 'WINDOW')
+        SchematicSceneShow._handle = None
 
     def cancel(self, context):
         self.handle_remove()
 
     def modal(self, context, event):
-        if not context.window_manager.show_schematic_scene:
-            return {'CANCELLED'}
-        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not context.window_manager.schematic_scene_3d_view_select:
+        wm = context.window_manager
+        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not wm.schematic_scene_3d_view_select:
             area = context.area
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
                     if region.type == 'WINDOW':
-                        context.window_manager.click_x, context.window_manager.click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        wm.schematic_scene_click_x, wm.schematic_scene_click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        if not context.window_manager.show_schematic_scene:
-            self.operator_text = 'Hide Schematic Scene'
-            context.window_manager.show_schematic_scene = True
+        wm = context.window_manager
+        if not wm.schematic_scene_show:
+            wm.schematic_scene_show = True
             if context.area.type == 'NODE_EDITOR':
                 self.handle_add()
                 context.area.tag_redraw()
-                context.window_manager.modal_handler_add(self)
+                wm.modal_handler_add(self)
                 return {'RUNNING_MODAL'}
         else:
-            self.operator_text = 'Show Schematic Scene'
-            context.window_manager.show_schematic_scene = False
+            wm.schematic_scene_show = False
             self.handle_remove()
             context.area.tag_redraw()
             return {'CANCELLED'}
@@ -298,35 +294,35 @@ class SchematicScenePanel(bpy.types.Panel):
 
 def init_properties():
     wm = bpy.types.WindowManager
-    wm.show_schematic_scene = bpy.props.BoolProperty(default=False)
+    wm.schematic_scene_show = bpy.props.BoolProperty(default=False)
     wm.schematic_scene_3d_view_select = bpy.props.BoolProperty(name='3D View Select', default=False)
-    wm.click_x = bpy.props.FloatProperty(default=-1000.0)
-    wm.click_y = bpy.props.FloatProperty(default=-1000.0)
+    wm.schematic_scene_click_x = bpy.props.FloatProperty(default=-1000.0)
+    wm.schematic_scene_click_y = bpy.props.FloatProperty(default=-1000.0)
 
 
 def clear_properties():
-    del bpy.types.WindowManager.show_schematic_scene
+    del bpy.types.WindowManager.schematic_scene_show
     del bpy.types.WindowManager.schematic_scene_3d_view_select
-    del bpy.types.WindowManager.click_x
-    del bpy.types.WindowManager.click_y
+    del bpy.types.WindowManager.schematic_scene_click_x
+    del bpy.types.WindowManager.schematic_scene_click_y
 
 
 def draw_operator(self, context):
-    if context.area.spaces[0].tree_type == 'SceneTreeType':
-        self.layout.operator('node.show_schematics_scene', bpy.types.NODE_OT_show_schematics_scene.operator_text)
+    if context.area.spaces[0].tree_type == 'SchematicScene':
+        self.layout.operator('node.schematic_scene_show')
 
 
 def register():
     init_properties()
     bpy.utils.register_class(SceneNodeTree)
-    bpy.utils.register_class(ShowSchematicScene)
-    bpy.types.NODE_HT_header.append(draw_operator)
+    bpy.utils.register_class(SchematicSceneShow)
     bpy.utils.register_class(SchematicScenePanel)
+    bpy.types.NODE_HT_header.append(draw_operator)
 
 
 def unregister():
-    bpy.utils.unregister_class(SchematicScenePanel)
     bpy.types.NODE_HT_header.remove(draw_operator)
-    bpy.utils.unregister_class(ShowSchematicScene)
+    bpy.utils.unregister_class(SchematicScenePanel)
+    bpy.utils.unregister_class(SchematicSceneShow)
     bpy.utils.unregister_class(SceneNodeTree)
     clear_properties()
