@@ -105,10 +105,11 @@ class SchematicNode:
         _draw_text()
 
 
-SCENE_NODE_COLOR = [0.2, 0.4, 0.8]
-OBJECT_NODE_COLOR = [0.8, 0.4, 0.2]
+SCENE_NODE_COLOR = [0.2, 0.4, 0.6]
+OBJECT_NODE_COLOR = [0.6, 0.4, 0.2]
 MESH_NODE_COLOR = [0.6, 0.6, 0.6]
-MATERIAL_NODE_COLOR = [0.8, 0.2, 0.2]
+MATERIAL_NODE_COLOR = [0.6, 0.2, 0.2]
+LIGHT_ADD_COLOR = 0.4
 
 
 def draw_schematic_scene():
@@ -161,9 +162,9 @@ def draw_schematic_scene():
                         schematic_node.active_child_name.append(child.text)
                         if not child.active:
                             child.active = True
-                            child.color[0] += 0.2
-                            child.color[1] += 0.2
-                            child.color[2] += 0.2
+                            child.color[0] += LIGHT_ADD_COLOR
+                            child.color[1] += LIGHT_ADD_COLOR
+                            child.color[2] += LIGHT_ADD_COLOR
                         _select_children(child)
 
                 def _select_parents(schematic_node):
@@ -171,9 +172,9 @@ def draw_schematic_scene():
                         parent.active_child_name.append(schematic_node.text)
                         if not parent.active:
                             parent.active = True
-                            parent.color[0] += 0.2
-                            parent.color[1] += 0.2
-                            parent.color[2] += 0.2
+                            parent.color[0] += LIGHT_ADD_COLOR
+                            parent.color[1] += LIGHT_ADD_COLOR
+                            parent.color[2] += LIGHT_ADD_COLOR
                         _select_parents(parent)
 
                 # Generate objects nodes
@@ -194,9 +195,9 @@ def draw_schematic_scene():
                     # Select Node
                     if object.name == active_object_name:
                         object_node.active = True
-                        object_node.color[0] += 0.2
-                        object_node.color[1] += 0.2
-                        object_node.color[2] += 0.2
+                        object_node.color[0] += LIGHT_ADD_COLOR
+                        object_node.color[1] += LIGHT_ADD_COLOR
+                        object_node.color[2] += LIGHT_ADD_COLOR
                         object_node.border_select = True
                         _select_children(object_node)
                         _select_parents(object_node)
@@ -219,9 +220,9 @@ def draw_schematic_scene():
                                 last_offset_y < click_y < (last_offset_y + NODE_HIGHT) and \
                                 not bpy.context.window_manager.schematic_scene_3d_view_select:
                             schematic_node.active = True
-                            schematic_node.color[0] += 0.2
-                            schematic_node.color[1] += 0.2
-                            schematic_node.color[2] += 0.2
+                            schematic_node.color[0] += LIGHT_ADD_COLOR
+                            schematic_node.color[1] += LIGHT_ADD_COLOR
+                            schematic_node.color[2] += LIGHT_ADD_COLOR
                             schematic_node.border_select = True
                             _select_children(schematic_node)
                             _select_parents(schematic_node)
