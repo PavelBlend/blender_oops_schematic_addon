@@ -143,7 +143,7 @@ def draw_scene_nodes():
                     scene_nodes[scene.name] = scene_node
                     schematic_nodes[0].append(scene_node)
 
-                if bpy.context.scene.objects.active:
+                if bpy.context.scene.objects.active and bpy.context.window_manager.schematic_scene_3d_view_select:
                     if bpy.context.scene.objects.active.select:
                         active_object_name = bpy.context.scene.objects.active.name
                     else:
@@ -216,7 +216,8 @@ def draw_scene_nodes():
                         schematic_node.offset_y = last_offset_y
                         node_size_x = len(schematic_node.text) * char_size + x_distance
                         if last_offset_x < click_x < (last_offset_x + node_size_x) and \
-                                last_offset_y < click_y < (last_offset_y + node_hight) and not has_active_node:
+                                last_offset_y < click_y < (last_offset_y + node_hight) and not has_active_node and \
+                                not bpy.context.window_manager.schematic_scene_3d_view_select:
                             schematic_node.active = True
                             schematic_node.color[0] += 0.2
                             schematic_node.color[1] += 0.2
@@ -257,14 +258,12 @@ class ShowSchematicScene(bpy.types.Operator):
     def modal(self, context, event):
         if not context.window_manager.show_schematic_scene:
             return {'CANCELLED'}
-        if event.type == 'LEFTMOUSE' and event.value == 'CLICK':
+        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not context.window_manager.schematic_scene_3d_view_select:
             area = context.area
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
                     if region.type == 'WINDOW':
                         context.window_manager.click_x, context.window_manager.click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
-                        if context.object:
-                            context.object.select = False
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
@@ -285,15 +284,29 @@ class ShowSchematicScene(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+class SchematicScenePanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_schematic_scene"
+    bl_label = "Options"
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "Schematic Scene"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.window_manager, 'schematic_scene_3d_view_select')
+
+
 def init_properties():
     wm = bpy.types.WindowManager
     wm.show_schematic_scene = bpy.props.BoolProperty(default=False)
+    wm.schematic_scene_3d_view_select = bpy.props.BoolProperty(name='3D View Select', default=False)
     wm.click_x = bpy.props.FloatProperty(default=-1000.0)
     wm.click_y = bpy.props.FloatProperty(default=-1000.0)
 
 
 def clear_properties():
     del bpy.types.WindowManager.show_schematic_scene
+    del bpy.types.WindowManager.schematic_scene_3d_view_select
     del bpy.types.WindowManager.click_x
     del bpy.types.WindowManager.click_y
 
@@ -308,9 +321,11 @@ def register():
     bpy.utils.register_class(SceneNodeTree)
     bpy.utils.register_class(ShowSchematicScene)
     bpy.types.NODE_HT_header.append(draw_operator)
+    bpy.utils.register_class(SchematicScenePanel)
 
 
 def unregister():
+    bpy.utils.unregister_class(SchematicScenePanel)
     bpy.types.NODE_HT_header.remove(draw_operator)
     bpy.utils.unregister_class(ShowSchematicScene)
     bpy.utils.unregister_class(SceneNodeTree)
