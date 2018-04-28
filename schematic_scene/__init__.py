@@ -177,6 +177,7 @@ def draw_schematic_scene():
                             parent.color[2] += LIGHT_ADD_COLOR
                         _select_parents(parent)
 
+
                 # Generate objects nodes
                 if wm.schematic_scene_show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
@@ -219,16 +220,19 @@ def draw_schematic_scene():
                         schematic_node.offset_y = last_offset_y
                         # Select Node
                         node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
-                        if last_offset_x < click_x < (last_offset_x + node_size_x) and \
-                                last_offset_y < click_y < (last_offset_y + NODE_HIGHT) and \
-                                not bpy.context.window_manager.schematic_scene_3d_view_select:
-                            schematic_node.active = True
-                            schematic_node.color[0] += LIGHT_ADD_COLOR
-                            schematic_node.color[1] += LIGHT_ADD_COLOR
-                            schematic_node.color[2] += LIGHT_ADD_COLOR
-                            schematic_node.border_select = True
-                            _select_children(schematic_node)
-                            _select_parents(schematic_node)
+                        for click in bpy.context.window_manager.schematic_scene_multi_click:
+                            if last_offset_x < click.x < (last_offset_x + node_size_x) and \
+                                    last_offset_y < click.y < (last_offset_y + NODE_HIGHT) and \
+                                    not bpy.context.window_manager.schematic_scene_3d_view_select:
+                                if not schematic_node.active:
+                                    schematic_node.active = True
+                                    schematic_node.color[0] += LIGHT_ADD_COLOR
+                                    schematic_node.color[1] += LIGHT_ADD_COLOR
+                                    schematic_node.color[2] += LIGHT_ADD_COLOR
+                                if not schematic_node.border_select:
+                                    schematic_node.border_select = True
+                                _select_children(schematic_node)
+                                _select_parents(schematic_node)
                         last_offset_x += node_size_x
                     last_offset_x = 0
                     last_offset_y += Y_DISTANCE
@@ -265,7 +269,13 @@ class SchematicSceneShow(bpy.types.Operator):
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
                     if region.type == 'WINDOW':
-                        wm.schematic_scene_click_x, wm.schematic_scene_click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        click_x, click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        use_multi_select = event.shift
+                        if not use_multi_select:
+                            wm.schematic_scene_multi_click.clear()
+                        click = wm.schematic_scene_multi_click.add()
+                        click.x = click_x
+                        click.y = click_y
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
@@ -333,6 +343,11 @@ class SchematicSceneNodesColorsPanel(bpy.types.Panel):
         layout.prop(wm, 'schematic_scene_color_materials_nodes')
 
 
+class SchematicSceneClick(bpy.types.PropertyGroup):
+    x = bpy.props.FloatProperty(default=-1000.0)
+    y = bpy.props.FloatProperty(default=-1000.0)
+
+
 def init_properties():
     wm = bpy.types.WindowManager
     wm.schematic_scene_show = bpy.props.BoolProperty(default=False)
@@ -362,6 +377,9 @@ def init_properties():
     wm.schematic_scene_curve_resolution = bpy.props.IntProperty(name='Curve Resolution', default=40,
         min=2, max=100, soft_min=2, soft_max=100)
 
+    bpy.utils.register_class(SchematicSceneClick)
+    wm.schematic_scene_multi_click = bpy.props.CollectionProperty(type=SchematicSceneClick)
+
 
 def clear_properties():
     del bpy.types.WindowManager.schematic_scene_show
@@ -381,6 +399,9 @@ def clear_properties():
     del bpy.types.WindowManager.schematic_scene_color_materials_nodes
 
     del bpy.types.WindowManager.schematic_scene_curve_resolution
+
+    bpy.utils.unregister_class(SchematicSceneClick)
+    del bpy.types.WindowManager.schematic_scene_multi_click
 
 
 def draw_operator(self, context):
