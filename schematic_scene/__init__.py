@@ -177,7 +177,6 @@ def draw_schematic_scene():
                             parent.color[2] += LIGHT_ADD_COLOR
                         _select_parents(parent)
 
-
                 # Generate objects nodes
                 if wm.schematic_scene_show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
@@ -209,8 +208,6 @@ def draw_schematic_scene():
                 # Set Nodes Coordinates
                 last_offset_x = 0
                 last_offset_y = 0
-                click_x = bpy.context.window_manager.schematic_scene_click_x
-                click_y = bpy.context.window_manager.schematic_scene_click_y
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         if last_offset_x > bpy.context.window_manager.schematic_scene_tree_width:
@@ -352,8 +349,6 @@ def init_properties():
     wm = bpy.types.WindowManager
     wm.schematic_scene_show = bpy.props.BoolProperty(default=False)
     wm.schematic_scene_3d_view_select = bpy.props.BoolProperty(name='3D View Select', default=False)
-    wm.schematic_scene_click_x = bpy.props.FloatProperty(default=-1000.0)
-    wm.schematic_scene_click_y = bpy.props.FloatProperty(default=-1000.0)
     wm.schematic_scene_tree_width = bpy.props.FloatProperty(name='Tree Width', default=1000.0)
 
     wm.schematic_scene_show_scenes = bpy.props.BoolProperty(name='Scenes', default=True)
@@ -384,8 +379,6 @@ def init_properties():
 def clear_properties():
     del bpy.types.WindowManager.schematic_scene_show
     del bpy.types.WindowManager.schematic_scene_3d_view_select
-    del bpy.types.WindowManager.schematic_scene_click_x
-    del bpy.types.WindowManager.schematic_scene_click_y
     del bpy.types.WindowManager.schematic_scene_tree_width
 
     del bpy.types.WindowManager.schematic_scene_show_scenes
@@ -400,8 +393,8 @@ def clear_properties():
 
     del bpy.types.WindowManager.schematic_scene_curve_resolution
 
-    bpy.utils.unregister_class(SchematicSceneClick)
     del bpy.types.WindowManager.schematic_scene_multi_click
+    bpy.utils.unregister_class(SchematicSceneClick)
 
 
 def draw_operator(self, context):
