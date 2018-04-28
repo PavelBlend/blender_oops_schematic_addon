@@ -123,13 +123,6 @@ def draw_schematic_scene():
                 materials_nodes = {}
                 wm = bpy.context.window_manager
 
-                
-                '''del bpy.types.WindowManager.schematic_scene_show_scenes
-                del bpy.types.WindowManager.schematic_scene_show_objects
-                del bpy.types.WindowManager.schematic_scene_show_meshes
-                del bpy.types.WindowManager.schematic_scene_show_materials'''
-                
-                
                 # Generate materials nodes
                 if wm.schematic_scene_show_materials:
                     for material_index, material in enumerate(bpy.data.materials):
@@ -245,6 +238,7 @@ def draw_schematic_scene():
                     last_offset_x = 0
                     last_offset_y += Y_DISTANCE
 
+                # Draw nodes
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw()
