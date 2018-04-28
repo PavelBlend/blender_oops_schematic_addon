@@ -56,7 +56,8 @@ class SchematicNode:
                 handle1.y += (child.offset_y - self.offset_y) / 4
                 handle2 = finish.copy()
                 handle2.y -= (child.offset_y - self.offset_y) / 4
-                vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, 40)]
+                curve_resolution = bpy.context.window_manager.schematic_scene_curve_resolution
+                vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
                 # Color choosing
                 bgl.glLineWidth(1)
                 color = (0.5, 0.5, 0.5)
@@ -295,6 +296,7 @@ class SchematicScenePanel(bpy.types.Panel):
         layout = self.layout
         layout.prop(context.window_manager, 'schematic_scene_3d_view_select')
         layout.prop(context.window_manager, 'schematic_scene_tree_width')
+        layout.prop(context.window_manager, 'schematic_scene_curve_resolution')
 
         layout.label('Show Nodes:')
         row = layout.row()
@@ -336,6 +338,9 @@ def init_properties():
         name='Material', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
 
+    wm.schematic_scene_curve_resolution = bpy.props.IntProperty(name='Curve Resolution', default=40,
+        min=2, max=100, soft_min=2, soft_max=100)
+
 
 def clear_properties():
     del bpy.types.WindowManager.schematic_scene_show
@@ -353,6 +358,8 @@ def clear_properties():
     del bpy.types.WindowManager.schematic_scene_color_objects_nodes
     del bpy.types.WindowManager.schematic_scene_color_meshes_nodes
     del bpy.types.WindowManager.schematic_scene_color_materials_nodes
+
+    del bpy.types.WindowManager.schematic_scene_curve_resolution
 
 
 def draw_operator(self, context):
