@@ -23,6 +23,7 @@ X_DISTANCE = 25
 Y_DISTANCE = 50
 NODE_HIGHT = 25
 BORDER_SIZE = 4
+LIGHT_ADD_COLOR = 0.4
 
 
 class SceneNodeTree(NodeTree):
@@ -105,13 +106,6 @@ class SchematicNode:
         _draw_text()
 
 
-SCENE_NODE_COLOR = [0.2, 0.4, 0.6]
-OBJECT_NODE_COLOR = [0.6, 0.4, 0.2]
-MESH_NODE_COLOR = [0.6, 0.6, 0.6]
-MATERIAL_NODE_COLOR = [0.6, 0.2, 0.2]
-LIGHT_ADD_COLOR = 0.4
-
-
 def draw_schematic_scene():
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
@@ -126,14 +120,14 @@ def draw_schematic_scene():
                 # Generate materials nodes
                 if wm.schematic_scene_show_materials:
                     for material_index, material in enumerate(bpy.data.materials):
-                        material_node = SchematicNode(material.name, MATERIAL_NODE_COLOR.copy(), material_index)
+                        material_node = SchematicNode(material.name, list(wm.schematic_scene_color_materials_nodes), material_index)
                         materials_nodes[material.name] = material_node
                         schematic_nodes[3].append(material_node)
 
                 # Generate meshes nodes
                 if wm.schematic_scene_show_meshes:
                     for mesh_index, mesh in enumerate(bpy.data.meshes):
-                        mesh_node = SchematicNode(mesh.name, MESH_NODE_COLOR.copy(), mesh_index)
+                        mesh_node = SchematicNode(mesh.name, list(wm.schematic_scene_color_meshes_nodes), mesh_index)
                         meshes_nodes[mesh.name] = mesh_node
                         schematic_nodes[2].append(mesh_node)
 
@@ -148,7 +142,7 @@ def draw_schematic_scene():
                 # Generate scenes nodes
                 if wm.schematic_scene_show_scenes:
                     for scene_index, scene in enumerate(bpy.data.scenes):
-                        scene_node = SchematicNode(scene.name, SCENE_NODE_COLOR.copy(), scene_index)
+                        scene_node = SchematicNode(scene.name, list(wm.schematic_scene_color_scenes_nodes), scene_index)
                         scene_nodes[scene.name] = scene_node
                         schematic_nodes[0].append(scene_node)
 
@@ -185,7 +179,7 @@ def draw_schematic_scene():
                 # Generate objects nodes
                 if wm.schematic_scene_show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
-                        object_node = SchematicNode(object.name, OBJECT_NODE_COLOR.copy(), object_index)
+                        object_node = SchematicNode(object.name, list(wm.schematic_scene_color_objects_nodes), object_index)
 
                         # Assign Children and Parents
                         if object.type == 'MESH':
@@ -301,12 +295,19 @@ class SchematicScenePanel(bpy.types.Panel):
         layout = self.layout
         layout.prop(context.window_manager, 'schematic_scene_3d_view_select')
         layout.prop(context.window_manager, 'schematic_scene_tree_width')
+
         layout.label('Show Nodes:')
         row = layout.row()
         row.prop(context.window_manager, 'schematic_scene_show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
         row.prop(context.window_manager, 'schematic_scene_show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
         row.prop(context.window_manager, 'schematic_scene_show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
         row.prop(context.window_manager, 'schematic_scene_show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
+
+        layout.label('Nodes Colors:')
+        layout.prop(context.window_manager, 'schematic_scene_color_scenes_nodes')
+        layout.prop(context.window_manager, 'schematic_scene_color_objects_nodes')
+        layout.prop(context.window_manager, 'schematic_scene_color_meshes_nodes')
+        layout.prop(context.window_manager, 'schematic_scene_color_materials_nodes')
 
 
 def init_properties():
@@ -316,10 +317,24 @@ def init_properties():
     wm.schematic_scene_click_x = bpy.props.FloatProperty(default=-1000.0)
     wm.schematic_scene_click_y = bpy.props.FloatProperty(default=-1000.0)
     wm.schematic_scene_tree_width = bpy.props.FloatProperty(name='Tree Width', default=1000.0)
+
     wm.schematic_scene_show_scenes = bpy.props.BoolProperty(name='Scenes', default=True)
     wm.schematic_scene_show_objects = bpy.props.BoolProperty(name='Objects', default=True)
     wm.schematic_scene_show_meshes = bpy.props.BoolProperty(name='Meshes', default=True)
     wm.schematic_scene_show_materials = bpy.props.BoolProperty(name='Materials', default=True)
+
+    wm.schematic_scene_color_scenes_nodes = bpy.props.FloatVectorProperty(
+        name='Scene', default=[0.2, 0.4, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    wm.schematic_scene_color_objects_nodes = bpy.props.FloatVectorProperty(
+        name='Object', default=[0.6, 0.4, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    wm.schematic_scene_color_meshes_nodes = bpy.props.FloatVectorProperty(
+        name='Mesh', default=[0.6, 0.6, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    wm.schematic_scene_color_materials_nodes = bpy.props.FloatVectorProperty(
+        name='Material', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
 
 
 def clear_properties():
@@ -328,10 +343,16 @@ def clear_properties():
     del bpy.types.WindowManager.schematic_scene_click_x
     del bpy.types.WindowManager.schematic_scene_click_y
     del bpy.types.WindowManager.schematic_scene_tree_width
+
     del bpy.types.WindowManager.schematic_scene_show_scenes
     del bpy.types.WindowManager.schematic_scene_show_objects
     del bpy.types.WindowManager.schematic_scene_show_meshes
     del bpy.types.WindowManager.schematic_scene_show_materials
+
+    del bpy.types.WindowManager.schematic_scene_color_scenes_nodes
+    del bpy.types.WindowManager.schematic_scene_color_objects_nodes
+    del bpy.types.WindowManager.schematic_scene_color_meshes_nodes
+    del bpy.types.WindowManager.schematic_scene_color_materials_nodes
 
 
 def draw_operator(self, context):
