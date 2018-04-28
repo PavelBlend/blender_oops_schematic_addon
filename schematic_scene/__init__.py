@@ -285,31 +285,52 @@ class SchematicSceneShow(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class SchematicScenePanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_schematic_scene"
-    bl_label = "Options"
+class SchematicSceneDisplayOptionsPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_schematic_scene_display_options"
+    bl_label = "Display Options"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = "Schematic Scene"
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.window_manager, 'schematic_scene_3d_view_select')
-        layout.prop(context.window_manager, 'schematic_scene_tree_width')
-        layout.prop(context.window_manager, 'schematic_scene_curve_resolution')
+        wm = context.window_manager
+        layout.prop(wm, 'schematic_scene_3d_view_select')
+        layout.prop(wm, 'schematic_scene_tree_width')
+        layout.prop(wm, 'schematic_scene_curve_resolution')
 
-        layout.label('Show Nodes:')
+
+class SchematicSceneUsedNodesPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_schematic_scene_used_nodes"
+    bl_label = "Used Nodes"
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "Schematic Scene"
+
+    def draw(self, context):
+        layout = self.layout
         row = layout.row()
-        row.prop(context.window_manager, 'schematic_scene_show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
-        row.prop(context.window_manager, 'schematic_scene_show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
-        row.prop(context.window_manager, 'schematic_scene_show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
-        row.prop(context.window_manager, 'schematic_scene_show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
+        wm = context.window_manager
+        row.prop(wm, 'schematic_scene_show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
+        row.prop(wm, 'schematic_scene_show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
+        row.prop(wm, 'schematic_scene_show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
+        row.prop(wm, 'schematic_scene_show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
 
-        layout.label('Nodes Colors:')
-        layout.prop(context.window_manager, 'schematic_scene_color_scenes_nodes')
-        layout.prop(context.window_manager, 'schematic_scene_color_objects_nodes')
-        layout.prop(context.window_manager, 'schematic_scene_color_meshes_nodes')
-        layout.prop(context.window_manager, 'schematic_scene_color_materials_nodes')
+
+class SchematicSceneNodesColorsPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_schematic_scene_nodes_colors"
+    bl_label = "Nodes Colors"
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "Schematic Scene"
+
+    def draw(self, context):
+        layout = self.layout
+        wm = context.window_manager
+        layout.prop(wm, 'schematic_scene_color_scenes_nodes')
+        layout.prop(wm, 'schematic_scene_color_objects_nodes')
+        layout.prop(wm, 'schematic_scene_color_meshes_nodes')
+        layout.prop(wm, 'schematic_scene_color_materials_nodes')
 
 
 def init_properties():
@@ -371,13 +392,17 @@ def register():
     init_properties()
     bpy.utils.register_class(SceneNodeTree)
     bpy.utils.register_class(SchematicSceneShow)
-    bpy.utils.register_class(SchematicScenePanel)
+    bpy.utils.register_class(SchematicSceneDisplayOptionsPanel)
+    bpy.utils.register_class(SchematicSceneUsedNodesPanel)
+    bpy.utils.register_class(SchematicSceneNodesColorsPanel)
     bpy.types.NODE_HT_header.append(draw_operator)
 
 
 def unregister():
     bpy.types.NODE_HT_header.remove(draw_operator)
-    bpy.utils.unregister_class(SchematicScenePanel)
+    bpy.utils.unregister_class(SchematicSceneDisplayOptionsPanel)
+    bpy.utils.unregister_class(SchematicSceneUsedNodesPanel)
+    bpy.utils.unregister_class(SchematicSceneNodesColorsPanel)
     bpy.utils.unregister_class(SchematicSceneShow)
     bpy.utils.unregister_class(SceneNodeTree)
     clear_properties()
