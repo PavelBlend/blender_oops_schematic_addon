@@ -147,16 +147,6 @@ def draw_schematic_scene():
                         scene_nodes[scene.name] = scene_node
                         schematic_nodes[0].append(scene_node)
 
-                # Set active object name
-                context_object = bpy.context.scene.objects.active
-                if context_object and bpy.context.window_manager.schematic_scene_3d_view_select:
-                    if context_object.select:
-                        active_object_name = context_object.name
-                    else:
-                        active_object_name = None
-                else:
-                    active_object_name = None
-
                 def _select_children(schematic_node):
                     for child in schematic_node.children:
                         schematic_node.active_child_name.append(child.text)
@@ -196,7 +186,7 @@ def draw_schematic_scene():
                         schematic_nodes[1].append(object_node)
 
                         # Select Node
-                        if object.name == active_object_name:
+                        if bpy.context.window_manager.schematic_scene_3d_view_select and object in bpy.context.selected_objects:
                             object_node.active = True
                             object_node.color[0] += LIGHT_ADD_COLOR
                             object_node.color[1] += LIGHT_ADD_COLOR
