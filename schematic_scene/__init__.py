@@ -367,20 +367,20 @@ def init_properties():
     wm.schematic_scene_show_textures = bpy.props.BoolProperty(name='Textures', default=True)
 
     wm.schematic_scene_color_scenes_nodes = bpy.props.FloatVectorProperty(
-        name='Scene Nodes Color', default=[0.2, 0.4, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        name='Scenes', default=[0.2, 0.4, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     wm.schematic_scene_color_objects_nodes = bpy.props.FloatVectorProperty(
-        name='Object Nodes Color', default=[0.6, 0.4, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        name='Objects', default=[0.6, 0.4, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     wm.schematic_scene_color_meshes_nodes = bpy.props.FloatVectorProperty(
-        name='Mesh Nodes Color', default=[0.6, 0.6, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        name='Meshes', default=[0.6, 0.6, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     wm.schematic_scene_color_materials_nodes = bpy.props.FloatVectorProperty(
-        name='Material Nodes Color', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        name='Materials', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
 
     wm.schematic_scene_color_textures_nodes = bpy.props.FloatVectorProperty(
-        name='Texture Nodes Color', default=[0.2, 0.6, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        name='Textures', default=[0.2, 0.6, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
 
     wm.schematic_scene_curve_resolution = bpy.props.IntProperty(name='Curve Resolution', default=40,
