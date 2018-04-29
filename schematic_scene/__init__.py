@@ -159,6 +159,30 @@ def draw_schematic_scene():
                                 if texture_node:
                                     texture_node.parents.append(material_node)
                                     material_node.children.append(texture_node)
+                        # Assign Images
+                        if wm.schematic_scene_show_images:
+                            node_tree = material.node_tree
+                            if node_tree:
+                                for node in node_tree.nodes:
+                                    if node.type == 'TEX_IMAGE':
+                                        image = node.image
+                                        if image:
+                                            image_node = images_nodes.get(image.name, None)
+                                            if image_node:
+                                                image_node.parents.append(material_node)
+                                                material_node.children.append(image_node)
+                        # Assign Textures
+                        if wm.schematic_scene_show_textures:
+                            node_tree = material.node_tree
+                            if node_tree:
+                                for node in node_tree.nodes:
+                                    if node.type == 'TEXTURE':
+                                        texture = node.texture
+                                        if texture:
+                                            texture_node = textures_nodes.get(texture.name, None)
+                                            if texture_node:
+                                                texture_node.parents.append(material_node)
+                                                material_node.children.append(texture_node)
 
                 # Generate meshes nodes
                 if wm.schematic_scene_show_meshes:
