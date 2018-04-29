@@ -451,6 +451,7 @@ def clear_properties():
     del bpy.types.WindowManager.schematic_scene_show_meshes
     del bpy.types.WindowManager.schematic_scene_show_materials
     del bpy.types.WindowManager.schematic_scene_show_textures
+    del bpy.types.WindowManager.schematic_scene_show_images
 
     del bpy.types.WindowManager.schematic_scene_color_scenes_nodes
     del bpy.types.WindowManager.schematic_scene_color_objects_nodes
