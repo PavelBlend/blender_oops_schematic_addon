@@ -281,7 +281,8 @@ def draw_schematic_scene():
                                 _select_parents(schematic_node)
                         last_offset_x += node_size_x
                     last_offset_x = 0
-                    last_offset_y += Y_DISTANCE
+                    if schematic_nodes_group:
+                        last_offset_y += Y_DISTANCE
 
                 # Draw nodes
                 for schematic_nodes_group in schematic_nodes:
