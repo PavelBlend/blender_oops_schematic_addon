@@ -36,7 +36,7 @@ class OopsSchematicNodeTree(NodeTree):
 
 
 class SchematicNode:
-    def __init__(self, text, color, index):
+    def __init__(self, text, color, index, type):
         self.children = []
         self.parents = []
         self.text = text
@@ -47,11 +47,15 @@ class SchematicNode:
         self.active = False
         self.active_child = []
         self.border_select = False
+        self.type = type
 
     def draw(self):
 
         def _draw_line():
             for child in self.children:
+                if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and \
+                                    bpy.context.window_manager.oops_schematic.show_only_active_links:
+                    continue
                 # Vertices calculation
                 start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
                 finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
@@ -139,7 +143,7 @@ def draw_schematic_scene():
 
                 # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Materials, 5 Textures, 6 Images
                 schematic_nodes = [[], [], [], [], [], [], []]
-                blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(ss.color_blende_file_nodes), 0)
+                blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(ss.color_blend_file_nodes), 0, 'BLEND_FILE')
                 if ss.show_libraries:
                     libraries_nodes = {None: blend_file}
                     schematic_nodes[0].append(blend_file)
@@ -154,14 +158,14 @@ def draw_schematic_scene():
                 # Generate libraries nodes
                 if ss.show_libraries:
                     for library_index, library in enumerate(bpy.data.libraries):
-                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(ss.color_libraries_nodes), library_index + 1)
+                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(ss.color_libraries_nodes), library_index + 1, 'LIBRARY')
                         libraries_nodes[library.name] = library_node
                         schematic_nodes[0].append(library_node)
 
                 # Generate images nodes
                 if ss.show_images:
                     for image_index, image in enumerate(bpy.data.images):
-                        image_node = SchematicNode(image.name, list(ss.color_images_nodes), image_index)
+                        image_node = SchematicNode(image.name, list(ss.color_images_nodes), image_index, 'IMAGE')
                         library_name = getattr(image.library, 'name', None)
                         if ss.show_libraries_links and ss.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -173,7 +177,7 @@ def draw_schematic_scene():
                 # Generate textures nodes
                 if ss.show_textures:
                     for texture_index, texture in enumerate(bpy.data.textures):
-                        texture_node = SchematicNode(texture.name, list(ss.color_textures_nodes), texture_index)
+                        texture_node = SchematicNode(texture.name, list(ss.color_textures_nodes), texture_index, 'TEXTURE')
                         library_name = getattr(texture.library, 'name', None)
                         if ss.show_libraries_links and ss.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -195,7 +199,7 @@ def draw_schematic_scene():
                 # Generate materials nodes
                 if ss.show_materials:
                     for material_index, material in enumerate(bpy.data.materials):
-                        material_node = SchematicNode(material.name, list(ss.color_materials_nodes), material_index)
+                        material_node = SchematicNode(material.name, list(ss.color_materials_nodes), material_index, 'MATERIAL')
                         library_name = getattr(material.library, 'name', None)
                         if ss.show_libraries_links and ss.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -241,7 +245,7 @@ def draw_schematic_scene():
                 # Generate meshes nodes
                 if ss.show_meshes:
                     for mesh_index, mesh in enumerate(bpy.data.meshes):
-                        mesh_node = SchematicNode(mesh.name, list(ss.color_meshes_nodes), mesh_index)
+                        mesh_node = SchematicNode(mesh.name, list(ss.color_meshes_nodes), mesh_index, 'MESH')
                         library_name = getattr(mesh.library, 'name', None)
                         if ss.show_libraries_links and ss.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -260,7 +264,7 @@ def draw_schematic_scene():
                 # Generate objects nodes
                 if ss.show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
-                        object_node = SchematicNode(object.name, list(ss.color_objects_nodes), object_index)
+                        object_node = SchematicNode(object.name, list(ss.color_objects_nodes), object_index, 'OBJECT')
 
                         # Assign Children and Parents
                         if object.type == 'MESH':
@@ -291,7 +295,7 @@ def draw_schematic_scene():
                 # Generate scenes nodes
                 if ss.show_scenes:
                     for scene_index, scene in enumerate(bpy.data.scenes):
-                        scene_node = SchematicNode(scene.name, list(ss.color_scenes_nodes), scene_index)
+                        scene_node = SchematicNode(scene.name, list(ss.color_scenes_nodes), scene_index, 'SCENE')
                         library_name = getattr(scene.library, 'name', None)
                         if ss.show_libraries_links and ss.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -404,9 +408,12 @@ class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
         layout = self.layout
         ss = context.window_manager.oops_schematic
         layout.prop(ss, 'select_3d_view')
-        layout.prop(ss, 'show_libraries_links')
         layout.prop(ss, 'tree_width')
         layout.prop(ss, 'curve_resolution')
+        layout.label('Library Options:')
+        layout.prop(ss, 'show_libraries_links')
+        if ss.show_libraries_links:
+            layout.prop(ss, 'show_only_active_links')
 
 
 class OopsSchematicUsedNodesPanel(bpy.types.Panel):
@@ -441,7 +448,7 @@ class OopsSchematicNodesColorsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         ss = context.window_manager.oops_schematic
-        layout.prop(ss, 'color_blende_file_nodes')
+        layout.prop(ss, 'color_blend_file_nodes')
         layout.prop(ss, 'color_libraries_nodes')
         layout.prop(ss, 'color_scenes_nodes')
         layout.prop(ss, 'color_objects_nodes')
@@ -463,7 +470,8 @@ def draw_operator(self, context):
 
 class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show = bpy.props.BoolProperty(default=False)
-    show_libraries_links = bpy.props.BoolProperty(name='Libraries Links', default=False)
+    show_libraries_links = bpy.props.BoolProperty(name='Show Links', default=False)
+    show_only_active_links = bpy.props.BoolProperty(name='Only Active Links', default=True)
     select_3d_view = bpy.props.BoolProperty(name='3D View Select', default=False)
     tree_width = bpy.props.FloatProperty(name='Tree Width', default=1000.0)
 
@@ -475,7 +483,7 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show_textures = bpy.props.BoolProperty(name='Textures', default=True)
     show_images = bpy.props.BoolProperty(name='Images', default=True)
 
-    color_blende_file_nodes = bpy.props.FloatVectorProperty(
+    color_blend_file_nodes = bpy.props.FloatVectorProperty(
         name='Blend File', default=[0.0, 0.2, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     color_libraries_nodes = bpy.props.FloatVectorProperty(
