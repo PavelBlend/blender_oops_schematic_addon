@@ -185,7 +185,7 @@ def draw_schematic_scene():
                         for texture_slot in material.texture_slots:
                             if texture_slot:
                                 texture = texture_slot.texture
-                                texture_node = images_nodes.get(getattr(texture.library, 'name', None)).get(texture.name, None)
+                                texture_node = textures_nodes.get(getattr(texture.library, 'name', None)).get(texture.name, None)
                                 if texture_node:
                                     texture_node.parents.append(material_node)
                                     material_node.children.append(texture_node)
@@ -209,7 +209,7 @@ def draw_schematic_scene():
                                     if node.type == 'TEXTURE':
                                         texture = node.texture
                                         if texture:
-                                            texture_node = images_nodes.get(getattr(texture.library, 'name', None)).get(texture.name, None)
+                                            texture_node = textures_nodes.get(getattr(texture.library, 'name', None)).get(texture.name, None)
                                             if texture_node:
                                                 texture_node.parents.append(material_node)
                                                 material_node.children.append(texture_node)
@@ -228,7 +228,7 @@ def draw_schematic_scene():
                         # Assign Children and Parents
                         for material in mesh.materials:
                             if material:
-                                material_node = images_nodes.get(getattr(material.library, 'name', None)).get(material.name, None)
+                                material_node = materials_nodes.get(getattr(material.library, 'name', None)).get(material.name, None)
                                 if material_node:
                                     material_node.parents.append(mesh_node)
                                     mesh_node.children.append(material_node)
@@ -272,12 +272,12 @@ def draw_schematic_scene():
 
                         # Assign Children and Parents
                         if object.type == 'MESH':
-                            mesh_node = images_nodes.get(getattr(object.data.library, 'name', None)).get(object.data.name, None)
+                            mesh_node = meshes_nodes.get(getattr(object.data.library, 'name', None)).get(object.data.name, None)
                             if mesh_node:
                                 mesh_node.parents.append(object_node)
                                 object_node.children.append(mesh_node)
                         for scene in object.users_scene:
-                            scene_node = images_nodes.get(getattr(scene.library, 'name', None)).get(scene.name, None)
+                            scene_node = scenes_nodes.get(getattr(scene.library, 'name', None)).get(scene.name, None)
                             if scene_node:
                                 scene_node.children.append(object_node)
                                 object_node.parents.append(scene_node)
