@@ -1,11 +1,12 @@
 
 bl_info = {
-    'name':     'Schematic Scene',
+    'name':     'OOPS Schematic',
     'author':   'Pavel_Blend, Bibo',
     'version':  (0, 0, 0),
     'blender':  (2, 79, 0),
     'category': 'Node',
-    'location': 'Node Editor > Schematic Scene'
+    'location': 'Node Editor > OOPS Schematic',
+    'description': 'Object-Oriented Programming System Schematic View'
 }
 
 
@@ -28,10 +29,10 @@ BORDER_SIZE = 4
 LIGHT_ADD_COLOR = 0.4
 
 
-class SceneNodeTree(NodeTree):
-    bl_idname = 'SchematicScene'
-    bl_label = 'Schematic Scene'
-    bl_icon = 'SCENE_DATA'
+class OopsSchematicNodeTree(NodeTree):
+    bl_idname = 'OopsSchematic'
+    bl_label = 'OOPS Schematic'
+    bl_icon = 'OOPS'
 
 
 class SchematicNode:
@@ -58,7 +59,7 @@ class SchematicNode:
                 handle1.y += (child.offset_y - self.offset_y) / 4
                 handle2 = finish.copy()
                 handle2.y -= (child.offset_y - self.offset_y) / 4
-                curve_resolution = bpy.context.window_manager.schematic_scene.curve_resolution
+                curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
                 vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
                 # Color choosing
                 bgl.glLineWidth(1)
@@ -131,10 +132,10 @@ def draw_schematic_scene():
                 parent.color[2] += LIGHT_ADD_COLOR
             _select_parents(parent)
 
-    ss = bpy.context.window_manager.schematic_scene
+    ss = bpy.context.window_manager.oops_schematic
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
-            if area.spaces[0].tree_type == 'SchematicScene':
+            if area.spaces[0].tree_type == 'OopsSchematic':
 
                 # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Materials, 5 Textures, 6 Images
                 schematic_nodes = [[], [], [], [], [], [], []]
@@ -340,27 +341,27 @@ def draw_schematic_scene():
                         schematic_node.draw()
 
 
-class SchematicSceneShow(bpy.types.Operator):
-    bl_idname = "node.schematic_scene_show"
-    bl_label = "Show/Hide Schematic Scene"
+class OopsSchematicShow(bpy.types.Operator):
+    bl_idname = "node.oops_schematic_show"
+    bl_label = "Show/Hide Oops Schematic"
 
     _handle = None
 
     @staticmethod
     def handle_add():
-        SchematicSceneShow._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_schematic_scene, (), 'WINDOW', 'POST_VIEW')
+        OopsSchematicShow._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_schematic_scene, (), 'WINDOW', 'POST_VIEW')
 
     @staticmethod
     def handle_remove():
-        if SchematicSceneShow._handle is not None:
-            bpy.types.SpaceNodeEditor.draw_handler_remove(SchematicSceneShow._handle, 'WINDOW')
-        SchematicSceneShow._handle = None
+        if OopsSchematicShow._handle is not None:
+            bpy.types.SpaceNodeEditor.draw_handler_remove(OopsSchematicShow._handle, 'WINDOW')
+        OopsSchematicShow._handle = None
 
     def cancel(self, context):
         self.handle_remove()
 
     def modal(self, context, event):
-        ss = context.window_manager.schematic_scene
+        ss = context.window_manager.oops_schematic
         if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not ss.select_3d_view:
             area = context.area
             if area.type == 'NODE_EDITOR':
@@ -377,7 +378,7 @@ class SchematicSceneShow(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        ss = context.window_manager.schematic_scene
+        ss = context.window_manager.oops_schematic
         if not ss.show:
             ss.show = True
             if context.area.type == 'NODE_EDITOR':
@@ -392,32 +393,32 @@ class SchematicSceneShow(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class SchematicSceneDisplayOptionsPanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_schematic_scene_display_options"
+class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_oops_schematic_display_options"
     bl_label = "Display Options"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_category = "Schematic Scene"
+    bl_category = "OOPS Schematic"
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.schematic_scene
+        ss = context.window_manager.oops_schematic
         layout.prop(ss, 'select_3d_view')
         layout.prop(ss, 'show_libraries_links')
         layout.prop(ss, 'tree_width')
         layout.prop(ss, 'curve_resolution')
 
 
-class SchematicSceneUsedNodesPanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_schematic_scene_used_nodes"
+class OopsSchematicUsedNodesPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_oops_schematic_used_nodes"
     bl_label = "Used Nodes"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_category = "Schematic Scene"
+    bl_category = "OOPS Schematic"
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.schematic_scene
+        ss = context.window_manager.oops_schematic
         row = layout.row()
         row.prop(ss, 'show_libraries', icon='LIBRARY_DATA_DIRECT', toggle=True, icon_only=True)
         row = layout.row()
@@ -430,16 +431,16 @@ class SchematicSceneUsedNodesPanel(bpy.types.Panel):
         row.prop(ss, 'show_images', icon='IMAGE_DATA', toggle=True, icon_only=True)
 
 
-class SchematicSceneNodesColorsPanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_schematic_scene_nodes_colors"
+class OopsSchematicNodesColorsPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_oops_schematic_nodes_colors"
     bl_label = "Nodes Colors"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_category = "Schematic Scene"
+    bl_category = "OOPS Schematic"
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.schematic_scene
+        ss = context.window_manager.oops_schematic
         layout.prop(ss, 'color_blende_file_nodes')
         layout.prop(ss, 'color_libraries_nodes')
         layout.prop(ss, 'color_scenes_nodes')
@@ -450,17 +451,17 @@ class SchematicSceneNodesColorsPanel(bpy.types.Panel):
         layout.prop(ss, 'color_images_nodes')
 
 
-class SchematicSceneClick(bpy.types.PropertyGroup):
+class OopsSchematicClick(bpy.types.PropertyGroup):
     x = bpy.props.FloatProperty(default=-1000.0)
     y = bpy.props.FloatProperty(default=-1000.0)
 
 
 def draw_operator(self, context):
-    if context.area.spaces[0].tree_type == 'SchematicScene':
-        self.layout.operator('node.schematic_scene_show')
+    if context.area.spaces[0].tree_type == 'OopsSchematic':
+        self.layout.operator('node.oops_schematic_show')
 
 
-class SchematicScenePropertyGroup(bpy.types.PropertyGroup):
+class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show = bpy.props.BoolProperty(default=False)
     show_libraries_links = bpy.props.BoolProperty(name='Libraries Links', default=False)
     select_3d_view = bpy.props.BoolProperty(name='3D View Select', default=False)
@@ -504,28 +505,28 @@ class SchematicScenePropertyGroup(bpy.types.PropertyGroup):
     curve_resolution = bpy.props.IntProperty(name='Curve Resolution', default=40,
         min=2, max=100, soft_min=2, soft_max=100)
 
-    multi_click = bpy.props.CollectionProperty(type=SchematicSceneClick)
+    multi_click = bpy.props.CollectionProperty(type=OopsSchematicClick)
 
 
 def register():
-    bpy.utils.register_class(SchematicSceneClick)
-    bpy.utils.register_class(SchematicScenePropertyGroup)
-    bpy.types.WindowManager.schematic_scene = bpy.props.PointerProperty(type=SchematicScenePropertyGroup)
-    bpy.utils.register_class(SceneNodeTree)
-    bpy.utils.register_class(SchematicSceneShow)
-    bpy.utils.register_class(SchematicSceneDisplayOptionsPanel)
-    bpy.utils.register_class(SchematicSceneUsedNodesPanel)
-    bpy.utils.register_class(SchematicSceneNodesColorsPanel)
+    bpy.utils.register_class(OopsSchematicClick)
+    bpy.utils.register_class(OopsSchematicPropertyGroup)
+    bpy.types.WindowManager.oops_schematic = bpy.props.PointerProperty(type=OopsSchematicPropertyGroup)
+    bpy.utils.register_class(OopsSchematicNodeTree)
+    bpy.utils.register_class(OopsSchematicShow)
+    bpy.utils.register_class(OopsSchematicDisplayOptionsPanel)
+    bpy.utils.register_class(OopsSchematicUsedNodesPanel)
+    bpy.utils.register_class(OopsSchematicNodesColorsPanel)
     bpy.types.NODE_HT_header.append(draw_operator)
 
 
 def unregister():
     bpy.types.NODE_HT_header.remove(draw_operator)
-    bpy.utils.unregister_class(SchematicSceneDisplayOptionsPanel)
-    bpy.utils.unregister_class(SchematicSceneUsedNodesPanel)
-    bpy.utils.unregister_class(SchematicSceneNodesColorsPanel)
-    bpy.utils.unregister_class(SchematicSceneShow)
-    bpy.utils.unregister_class(SceneNodeTree)
-    del bpy.types.WindowManager.schematic_scene
-    bpy.utils.unregister_class(SchematicScenePropertyGroup)
-    bpy.utils.unregister_class(SchematicSceneClick)
+    bpy.utils.unregister_class(OopsSchematicDisplayOptionsPanel)
+    bpy.utils.unregister_class(OopsSchematicUsedNodesPanel)
+    bpy.utils.unregister_class(OopsSchematicNodesColorsPanel)
+    bpy.utils.unregister_class(OopsSchematicShow)
+    bpy.utils.unregister_class(OopsSchematicNodeTree)
+    del bpy.types.WindowManager.oops_schematic
+    bpy.utils.unregister_class(OopsSchematicPropertyGroup)
+    bpy.utils.unregister_class(OopsSchematicClick)
