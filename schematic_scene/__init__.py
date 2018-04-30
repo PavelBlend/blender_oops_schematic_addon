@@ -153,7 +153,7 @@ def draw_schematic_scene():
                 # Generate libraries nodes
                 if ss.show_libraries:
                     for library_index, library in enumerate(bpy.data.libraries):
-                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath)), list(ss.color_libraries_nodes), library_index + 1)
+                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(ss.color_libraries_nodes), library_index + 1)
                         libraries_nodes[library.name] = library_node
                         schematic_nodes[0].append(library_node)
 
