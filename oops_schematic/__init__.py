@@ -136,15 +136,15 @@ def draw_schematic_scene():
                 parent.color[2] += LIGHT_ADD_COLOR
             _select_parents(parent)
 
-    ss = bpy.context.window_manager.oops_schematic
+    s = bpy.context.window_manager.oops_schematic    # s - schematic
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'OopsSchematic':
 
                 # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Materials, 5 Textures, 6 Images
                 schematic_nodes = [[], [], [], [], [], [], []]
-                blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(ss.color_blend_file_nodes), 0, 'BLEND_FILE')
-                if ss.show_libraries:
+                blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(s.color_blend_file_nodes), 0, 'BLEND_FILE')
+                if s.show_libraries:
                     libraries_nodes = {None: blend_file}
                     schematic_nodes[0].append(blend_file)
                 scenes_nodes = {library.name: {} for library in bpy.data.libraries}
@@ -156,18 +156,18 @@ def draw_schematic_scene():
                 images_nodes = scenes_nodes.copy()
 
                 # Generate libraries nodes
-                if ss.show_libraries:
+                if s.show_libraries:
                     for library_index, library in enumerate(bpy.data.libraries):
-                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(ss.color_libraries_nodes), library_index + 1, 'LIBRARY')
+                        library_node = SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(s.color_libraries_nodes), library_index + 1, 'LIBRARY')
                         libraries_nodes[library.name] = library_node
                         schematic_nodes[0].append(library_node)
 
                 # Generate images nodes
-                if ss.show_images:
+                if s.show_images:
                     for image_index, image in enumerate(bpy.data.images):
-                        image_node = SchematicNode(image.name, list(ss.color_images_nodes), image_index, 'IMAGE')
+                        image_node = SchematicNode(image.name, list(s.color_images_nodes), image_index, 'IMAGE')
                         library_name = getattr(image.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             image_node.parents.append(library_node)
                             library_node.children.append(image_node)
@@ -175,11 +175,11 @@ def draw_schematic_scene():
                         schematic_nodes[6].append(image_node)
 
                 # Generate textures nodes
-                if ss.show_textures:
+                if s.show_textures:
                     for texture_index, texture in enumerate(bpy.data.textures):
-                        texture_node = SchematicNode(texture.name, list(ss.color_textures_nodes), texture_index, 'TEXTURE')
+                        texture_node = SchematicNode(texture.name, list(s.color_textures_nodes), texture_index, 'TEXTURE')
                         library_name = getattr(texture.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             texture_node.parents.append(library_node)
                             library_node.children.append(texture_node)
@@ -197,11 +197,11 @@ def draw_schematic_scene():
                         textures_nodes[library_name][texture.name] = texture_node
 
                 # Generate materials nodes
-                if ss.show_materials:
+                if s.show_materials:
                     for material_index, material in enumerate(bpy.data.materials):
-                        material_node = SchematicNode(material.name, list(ss.color_materials_nodes), material_index, 'MATERIAL')
+                        material_node = SchematicNode(material.name, list(s.color_materials_nodes), material_index, 'MATERIAL')
                         library_name = getattr(material.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             material_node.parents.append(library_node)
                             library_node.children.append(material_node)
@@ -215,7 +215,7 @@ def draw_schematic_scene():
                                     texture_node.parents.append(material_node)
                                     material_node.children.append(texture_node)
                         # Assign Images
-                        if ss.show_images:
+                        if s.show_images:
                             node_tree = material.node_tree
                             if node_tree:
                                 for node in node_tree.nodes:
@@ -227,7 +227,7 @@ def draw_schematic_scene():
                                                 image_node.parents.append(material_node)
                                                 material_node.children.append(image_node)
                         # Assign Textures
-                        if ss.show_textures:
+                        if s.show_textures:
                             node_tree = material.node_tree
                             if node_tree:
                                 for node in node_tree.nodes:
@@ -243,11 +243,11 @@ def draw_schematic_scene():
                         materials_nodes[library_name][material.name] = material_node
 
                 # Generate meshes nodes
-                if ss.show_meshes:
+                if s.show_meshes:
                     for mesh_index, mesh in enumerate(bpy.data.meshes):
-                        mesh_node = SchematicNode(mesh.name, list(ss.color_meshes_nodes), mesh_index, 'MESH')
+                        mesh_node = SchematicNode(mesh.name, list(s.color_meshes_nodes), mesh_index, 'MESH')
                         library_name = getattr(mesh.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             mesh_node.parents.append(library_node)
                             library_node.children.append(mesh_node)
@@ -262,9 +262,9 @@ def draw_schematic_scene():
                         meshes_nodes[library_name][mesh.name] = mesh_node
 
                 # Generate objects nodes
-                if ss.show_objects:
+                if s.show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
-                        object_node = SchematicNode(object.name, list(ss.color_objects_nodes), object_index, 'OBJECT')
+                        object_node = SchematicNode(object.name, list(s.color_objects_nodes), object_index, 'OBJECT')
 
                         # Assign Children and Parents
                         if object.type == 'MESH':
@@ -274,13 +274,13 @@ def draw_schematic_scene():
                                 object_node.children.append(mesh_node)
 
                         library_name = getattr(object.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             object_node.parents.append(library_node)
                             library_node.children.append(object_node)
 
                         # Select Node
-                        if ss.select_3d_view and object in bpy.context.selected_objects:
+                        if s.select_3d_view and object in bpy.context.selected_objects:
                             object_node.active = True
                             object_node.color[0] += LIGHT_ADD_COLOR
                             object_node.color[1] += LIGHT_ADD_COLOR
@@ -293,11 +293,11 @@ def draw_schematic_scene():
                         objects_nodes[library_name][object.name] = object_node
 
                 # Generate scenes nodes
-                if ss.show_scenes:
+                if s.show_scenes:
                     for scene_index, scene in enumerate(bpy.data.scenes):
-                        scene_node = SchematicNode(scene.name, list(ss.color_scenes_nodes), scene_index, 'SCENE')
+                        scene_node = SchematicNode(scene.name, list(s.color_scenes_nodes), scene_index, 'SCENE')
                         library_name = getattr(scene.library, 'name', None)
-                        if ss.show_libraries_links and ss.show_libraries:
+                        if s.show_libraries_links and s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             scene_node.parents.append(library_node)
                             library_node.children.append(scene_node)
@@ -314,17 +314,17 @@ def draw_schematic_scene():
                 last_offset_y = 0
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
-                        if last_offset_x > ss.tree_width:
+                        if last_offset_x > s.tree_width:
                             last_offset_x = 0
                             last_offset_y += Y_DISTANCE
                         schematic_node.offset_x = last_offset_x
                         schematic_node.offset_y = last_offset_y
                         # Select Node
                         node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
-                        for click in ss.multi_click:
+                        for click in s.multi_click:
                             if last_offset_x < click.x < (last_offset_x + node_size_x) and \
                                     last_offset_y < click.y < (last_offset_y + NODE_HIGHT) and \
-                                    not ss.select_3d_view:
+                                    not s.select_3d_view:
                                 if not schematic_node.active:
                                     schematic_node.active = True
                                     schematic_node.color[0] += LIGHT_ADD_COLOR
@@ -365,8 +365,8 @@ class OopsSchematicShow(bpy.types.Operator):
         self.handle_remove()
 
     def modal(self, context, event):
-        ss = context.window_manager.oops_schematic
-        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not ss.select_3d_view:
+        s = context.window_manager.oops_schematic
+        if event.type == 'RIGHTMOUSE' and event.value == 'CLICK' and not s.select_3d_view:
             area = context.area
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
@@ -374,24 +374,24 @@ class OopsSchematicShow(bpy.types.Operator):
                         click_x, click_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
                         use_multi_select = event.shift
                         if not use_multi_select:
-                            ss.multi_click.clear()
-                        click = ss.multi_click.add()
+                            s.multi_click.clear()
+                        click = s.multi_click.add()
                         click.x = click_x
                         click.y = click_y
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        ss = context.window_manager.oops_schematic
-        if not ss.show:
-            ss.show = True
+        s = context.window_manager.oops_schematic
+        if not s.show:
+            s.show = True
             if context.area.type == 'NODE_EDITOR':
                 self.handle_add()
                 context.area.tag_redraw()
                 context.window_manager.modal_handler_add(self)
                 return {'RUNNING_MODAL'}
         else:
-            ss.show = False
+            s.show = False
             self.handle_remove()
             context.area.tag_redraw()
             return {'CANCELLED'}
@@ -406,14 +406,14 @@ class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.oops_schematic
-        layout.prop(ss, 'select_3d_view')
-        layout.prop(ss, 'tree_width')
-        layout.prop(ss, 'curve_resolution')
+        s = context.window_manager.oops_schematic
+        layout.prop(s, 'select_3d_view')
+        layout.prop(s, 'tree_width')
+        layout.prop(s, 'curve_resolution')
         layout.label('Library Options:')
-        layout.prop(ss, 'show_libraries_links')
-        if ss.show_libraries_links:
-            layout.prop(ss, 'show_only_active_links')
+        layout.prop(s, 'show_libraries_links')
+        if s.show_libraries_links:
+            layout.prop(s, 'show_only_active_links')
 
 
 class OopsSchematicUsedNodesPanel(bpy.types.Panel):
@@ -425,17 +425,17 @@ class OopsSchematicUsedNodesPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.oops_schematic
+        s = context.window_manager.oops_schematic
         row = layout.row()
-        row.prop(ss, 'show_libraries', icon='LIBRARY_DATA_DIRECT', toggle=True, icon_only=True)
+        row.prop(s, 'show_libraries', icon='LIBRARY_DATA_DIRECT', toggle=True, icon_only=True)
         row = layout.row()
-        row.prop(ss, 'show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
-        row.prop(ss, 'show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
-        row.prop(ss, 'show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
         row = layout.row()
-        row.prop(ss, 'show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
-        row.prop(ss, 'show_textures', icon='TEXTURE_DATA', toggle=True, icon_only=True)
-        row.prop(ss, 'show_images', icon='IMAGE_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_textures', icon='TEXTURE_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_images', icon='IMAGE_DATA', toggle=True, icon_only=True)
 
 
 class OopsSchematicNodesColorsPanel(bpy.types.Panel):
@@ -447,15 +447,15 @@ class OopsSchematicNodesColorsPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        ss = context.window_manager.oops_schematic
-        layout.prop(ss, 'color_blend_file_nodes')
-        layout.prop(ss, 'color_libraries_nodes')
-        layout.prop(ss, 'color_scenes_nodes')
-        layout.prop(ss, 'color_objects_nodes')
-        layout.prop(ss, 'color_meshes_nodes')
-        layout.prop(ss, 'color_materials_nodes')
-        layout.prop(ss, 'color_textures_nodes')
-        layout.prop(ss, 'color_images_nodes')
+        s = context.window_manager.oops_schematic
+        layout.prop(s, 'color_blend_file_nodes')
+        layout.prop(s, 'color_libraries_nodes')
+        layout.prop(s, 'color_scenes_nodes')
+        layout.prop(s, 'color_objects_nodes')
+        layout.prop(s, 'color_meshes_nodes')
+        layout.prop(s, 'color_materials_nodes')
+        layout.prop(s, 'color_textures_nodes')
+        layout.prop(s, 'color_images_nodes')
 
 
 class OopsSchematicClick(bpy.types.PropertyGroup):
