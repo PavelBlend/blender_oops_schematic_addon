@@ -53,9 +53,15 @@ class SchematicNode:
 
         def _draw_line():
             for child in self.children:
-                if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and \
-                                    bpy.context.window_manager.oops_schematic.show_only_active_links:
-                    continue
+                # Color choosing
+                bgl.glLineWidth(1)
+                color = (0.5, 0.5, 0.5)
+                if self.active and child in self.active_child:
+                    color = (1, 1, 0)
+                    bgl.glLineWidth(2)
+                if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and not self.border_select:
+                    bgl.glLineWidth(1)
+                    color = (0.5, 0.5, 0.5)
                 # Vertices calculation
                 start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
                 finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
@@ -65,12 +71,6 @@ class SchematicNode:
                 handle2.y -= (child.offset_y - self.offset_y) / 4
                 curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
                 vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
-                # Color choosing
-                bgl.glLineWidth(1)
-                color = (0.5, 0.5, 0.5)
-                if self.active and child in self.active_child:
-                    color = (1, 1, 0)
-                    bgl.glLineWidth(2)
                 # Drawing
                 bgl.glColor3f(*color)
                 bgl.glBegin(bgl.GL_LINES)
@@ -167,7 +167,7 @@ def draw_schematic_scene():
                     for image_index, image in enumerate(bpy.data.images):
                         image_node = SchematicNode(image.name, list(s.color_images_nodes), image_index, 'IMAGE')
                         library_name = getattr(image.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             image_node.parents.append(library_node)
                             library_node.children.append(image_node)
@@ -179,7 +179,7 @@ def draw_schematic_scene():
                     for texture_index, texture in enumerate(bpy.data.textures):
                         texture_node = SchematicNode(texture.name, list(s.color_textures_nodes), texture_index, 'TEXTURE')
                         library_name = getattr(texture.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             texture_node.parents.append(library_node)
                             library_node.children.append(texture_node)
@@ -201,7 +201,7 @@ def draw_schematic_scene():
                     for material_index, material in enumerate(bpy.data.materials):
                         material_node = SchematicNode(material.name, list(s.color_materials_nodes), material_index, 'MATERIAL')
                         library_name = getattr(material.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             material_node.parents.append(library_node)
                             library_node.children.append(material_node)
@@ -247,7 +247,7 @@ def draw_schematic_scene():
                     for mesh_index, mesh in enumerate(bpy.data.meshes):
                         mesh_node = SchematicNode(mesh.name, list(s.color_meshes_nodes), mesh_index, 'MESH')
                         library_name = getattr(mesh.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             mesh_node.parents.append(library_node)
                             library_node.children.append(mesh_node)
@@ -274,7 +274,7 @@ def draw_schematic_scene():
                                 object_node.children.append(mesh_node)
 
                         library_name = getattr(object.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             object_node.parents.append(library_node)
                             library_node.children.append(object_node)
@@ -297,7 +297,7 @@ def draw_schematic_scene():
                     for scene_index, scene in enumerate(bpy.data.scenes):
                         scene_node = SchematicNode(scene.name, list(s.color_scenes_nodes), scene_index, 'SCENE')
                         library_name = getattr(scene.library, 'name', None)
-                        if s.show_libraries_links and s.show_libraries:
+                        if s.show_libraries:
                             library_node = libraries_nodes[library_name]
                             scene_node.parents.append(library_node)
                             library_node.children.append(scene_node)
@@ -411,9 +411,6 @@ class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
         layout.prop(s, 'tree_width')
         layout.prop(s, 'curve_resolution')
         layout.label('Library Options:')
-        layout.prop(s, 'show_libraries_links')
-        if s.show_libraries_links:
-            layout.prop(s, 'show_only_active_links')
 
 
 class OopsSchematicUsedNodesPanel(bpy.types.Panel):
@@ -470,12 +467,10 @@ def draw_operator(self, context):
 
 class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show = bpy.props.BoolProperty(default=False)
-    show_libraries_links = bpy.props.BoolProperty(name='Show Links', default=False)
-    show_only_active_links = bpy.props.BoolProperty(name='Only Active Links', default=True)
     select_3d_view = bpy.props.BoolProperty(name='3D View Select', default=False)
     tree_width = bpy.props.FloatProperty(name='Tree Width', default=1000.0)
 
-    show_libraries = bpy.props.BoolProperty(name='Libraries', default=True)
+    show_libraries = bpy.props.BoolProperty(name='Libraries', default=False)
     show_scenes = bpy.props.BoolProperty(name='Scenes', default=True)
     show_objects = bpy.props.BoolProperty(name='Objects', default=True)
     show_meshes = bpy.props.BoolProperty(name='Meshes', default=True)
