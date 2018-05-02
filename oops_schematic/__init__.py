@@ -114,28 +114,29 @@ class SchematicNode:
         _draw_text()
 
 
+def _select_children(schematic_node):
+    for child in schematic_node.children:
+        schematic_node.active_child.append(child)
+        if not child.active:
+            child.active = True
+            child.color[0] += LIGHT_ADD_COLOR
+            child.color[1] += LIGHT_ADD_COLOR
+            child.color[2] += LIGHT_ADD_COLOR
+        _select_children(child)
+
+
+def _select_parents(schematic_node):
+    for parent in schematic_node.parents:
+        parent.active_child.append(schematic_node)
+        if not parent.active:
+            parent.active = True
+            parent.color[0] += LIGHT_ADD_COLOR
+            parent.color[1] += LIGHT_ADD_COLOR
+            parent.color[2] += LIGHT_ADD_COLOR
+        _select_parents(parent)
+
+
 def draw_schematic_scene():
-
-    def _select_children(schematic_node):
-        for child in schematic_node.children:
-            schematic_node.active_child.append(child)
-            if not child.active:
-                child.active = True
-                child.color[0] += LIGHT_ADD_COLOR
-                child.color[1] += LIGHT_ADD_COLOR
-                child.color[2] += LIGHT_ADD_COLOR
-            _select_children(child)
-
-    def _select_parents(schematic_node):
-        for parent in schematic_node.parents:
-            parent.active_child.append(schematic_node)
-            if not parent.active:
-                parent.active = True
-                parent.color[0] += LIGHT_ADD_COLOR
-                parent.color[1] += LIGHT_ADD_COLOR
-                parent.color[2] += LIGHT_ADD_COLOR
-            _select_parents(parent)
-
     s = bpy.context.window_manager.oops_schematic    # s - schematic
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
