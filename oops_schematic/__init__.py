@@ -49,69 +49,68 @@ class SchematicNode:
         self.border_select = False
         self.type = type
 
-    def draw(self):
-
-        def _draw_line():
-            for child in self.children:
-                # Color choosing
+    def draw_lines(self):
+        for child in self.children:
+            # Color choosing
+            bgl.glLineWidth(1)
+            color = (0.5, 0.5, 0.5)
+            if self.active and child in self.active_child:
+                color = (1, 1, 0)
+                bgl.glLineWidth(2)
+            if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and not self.border_select:
                 bgl.glLineWidth(1)
                 color = (0.5, 0.5, 0.5)
-                if self.active and child in self.active_child:
-                    color = (1, 1, 0)
-                    bgl.glLineWidth(2)
-                if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and not self.border_select:
-                    bgl.glLineWidth(1)
-                    color = (0.5, 0.5, 0.5)
-                # Vertices calculation
-                start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
-                finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
-                handle1 = start.copy()
-                handle1.y += (child.offset_y - self.offset_y) / 4
-                handle2 = finish.copy()
-                handle2.y -= (child.offset_y - self.offset_y) / 4
-                curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
-                vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
-                # Drawing
-                bgl.glColor3f(*color)
-                bgl.glBegin(bgl.GL_LINES)
-                for i in range(len(vertices)-1):
-                    bgl.glVertex2f(vertices[i].x, vertices[i].y)
-                    bgl.glVertex2f(vertices[i+1].x, vertices[i+1].y)
-                bgl.glEnd()
-
-        def _draw_box():
-            bgl.glColor3f(*self.color)
-
-            bgl.glBegin(bgl.GL_QUADS)
-            bgl.glVertex2f(self.offset_x, self.offset_y)
-            bgl.glVertex2f(self.offset_x, self.offset_y + NODE_HIGHT)
-            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y + NODE_HIGHT)
-            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y)
+            # Vertices calculation
+            if self.offset_y < child.offset_y:
+                handle_coefficient = 4
+            else:
+                handle_coefficient = 1 / 4
+            start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
+            finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
+            handle1 = start.copy()
+            handle1.y += (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+            handle2 = finish.copy()
+            handle2.y -= (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+            curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
+            vertices = [vertex for vertex in interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
+            # Drawing
+            bgl.glColor3f(*color)
+            bgl.glBegin(bgl.GL_LINES)
+            for i in range(len(vertices)-1):
+                bgl.glVertex2f(vertices[i].x, vertices[i].y)
+                bgl.glVertex2f(vertices[i+1].x, vertices[i+1].y)
             bgl.glEnd()
 
-        def _draw_border_box():
-            bgl.glColor3f(0, 0, 0)
-
-            bgl.glBegin(bgl.GL_QUADS)
-            bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y - BORDER_SIZE)
-            bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
-            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
-            bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y - BORDER_SIZE)
-            bgl.glEnd()
-
-        def _draw_text():
-            bgl.glColor3f(0, 0, 0)
-
-            blf.position(FONT_ID, self.offset_x, self.offset_y + NODE_HIGHT / 4, 0)
-            blf.blur(FONT_ID, 0)
-            blf.size(FONT_ID, 30, 30)
-            blf.draw(FONT_ID, self.text)
-
-        _draw_line()
+    def draw_box(self):
         if self.border_select:
-            _draw_border_box()
-        _draw_box()
-        _draw_text()
+            self._draw_border_box()
+
+        bgl.glColor3f(*self.color)
+
+        bgl.glBegin(bgl.GL_QUADS)
+        bgl.glVertex2f(self.offset_x, self.offset_y)
+        bgl.glVertex2f(self.offset_x, self.offset_y + NODE_HIGHT)
+        bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y + NODE_HIGHT)
+        bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x, self.offset_y)
+        bgl.glEnd()
+
+    def _draw_border_box(self):
+        bgl.glColor3f(0, 0, 0)
+
+        bgl.glBegin(bgl.GL_QUADS)
+        bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y - BORDER_SIZE)
+        bgl.glVertex2f(self.offset_x - BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
+        bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y + NODE_HIGHT + BORDER_SIZE)
+        bgl.glVertex2f(len(self.text) * CHAR_SIZE + self.offset_x + BORDER_SIZE, self.offset_y - BORDER_SIZE)
+        bgl.glEnd()
+
+    def draw_text(self):
+        bgl.glColor3f(0, 0, 0)
+
+        blf.position(FONT_ID, self.offset_x, self.offset_y + NODE_HIGHT / 4, 0)
+        blf.blur(FONT_ID, 0)
+        blf.size(FONT_ID, 30, 30)
+        blf.draw(FONT_ID, self.text)
 
 
 def _select_children(schematic_node):
@@ -148,14 +147,27 @@ def draw_schematic_scene():
                 if s.show_libraries:
                     libraries_nodes = {None: blend_file}
                     schematic_nodes[0].append(blend_file)
+
                 scenes_nodes = {library.name: {} for library in bpy.data.libraries}
                 scenes_nodes[None] = {}
-                objects_nodes = scenes_nodes.copy()
-                meshes_nodes = scenes_nodes.copy()
-                cameras_nodes = scenes_nodes.copy()
-                materials_nodes = scenes_nodes.copy()
-                textures_nodes = scenes_nodes.copy()
-                images_nodes = scenes_nodes.copy()
+
+                objects_nodes = {library.name: {} for library in bpy.data.libraries}
+                objects_nodes[None] = {}
+
+                meshes_nodes = {library.name: {} for library in bpy.data.libraries}
+                meshes_nodes[None] = {}
+
+                cameras_nodes = {library.name: {} for library in bpy.data.libraries}
+                cameras_nodes[None] = {}
+
+                materials_nodes = {library.name: {} for library in bpy.data.libraries}
+                materials_nodes[None] = {}
+
+                textures_nodes = {library.name: {} for library in bpy.data.libraries}
+                textures_nodes[None] = {}
+
+                images_nodes = {library.name: {} for library in bpy.data.libraries}
+                images_nodes[None] = {}
 
                 # Generate libraries nodes
                 if s.show_libraries:
@@ -298,7 +310,6 @@ def draw_schematic_scene():
                             object_node.parents.append(library_node)
                             library_node.children.append(object_node)
 
-                        schematic_nodes[2].append(object_node)
                         objects_nodes[library_name][object.name] = object_node
 
                 # Generate scenes nodes
@@ -313,6 +324,12 @@ def draw_schematic_scene():
                         for object in scene.objects:
                             object_node = objects_nodes.get(getattr(object.library, 'name', None)).get(object.name, None)
                             if object_node:
+                                # Assign Children and Parent Links
+                                for child in object.children:
+                                    child_library_name = getattr(child.library, 'name', None)
+                                    child_object_node = objects_nodes[child_library_name].get(child.name)
+                                    object_node.children.append(child_object_node)
+                                    child_object_node.parents.append(object_node)
                                 scene_node.children.append(object_node)
                                 object_node.parents.append(scene_node)
                                 # Select Object Node in 3D View
@@ -324,6 +341,7 @@ def draw_schematic_scene():
                                     object_node.border_select = True
                                     _select_children(object_node)
                                     _select_parents(object_node)
+                                schematic_nodes[2].append(object_node)
                         schematic_nodes[1].append(scene_node)
                         scenes_nodes[library_name][scene.name] = scene_node
 
@@ -360,7 +378,13 @@ def draw_schematic_scene():
                 # Draw nodes
                 for schematic_nodes_group in schematic_nodes:
                     for schematic_node in schematic_nodes_group:
-                        schematic_node.draw()
+                        schematic_node.draw_lines()
+                for schematic_nodes_group in schematic_nodes:
+                    for schematic_node in schematic_nodes_group:
+                        schematic_node.draw_box()
+                for schematic_nodes_group in schematic_nodes:
+                    for schematic_node in schematic_nodes_group:
+                        schematic_node.draw_text()
 
 
 class OopsSchematicShow(bpy.types.Operator):
