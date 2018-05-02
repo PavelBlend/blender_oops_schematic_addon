@@ -141,8 +141,8 @@ def draw_schematic_scene():
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'OopsSchematic':
 
-                # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Cameras, 5 Materials, 6 Textures, 7 Images
-                schematic_nodes = [[], [], [], [], [], [], [], []]
+                # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Cameras, 5 Materials, 6 Textures, 7 Images, 8 Worlds
+                schematic_nodes = [[], [], [], [], [], [], [], [], []]
                 blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(s.color_blend_file_nodes), 0, 'BLEND_FILE')
                 if s.show_libraries:
                     libraries_nodes = {None: blend_file}
@@ -150,6 +150,9 @@ def draw_schematic_scene():
 
                 scenes_nodes = {library.name: {} for library in bpy.data.libraries}
                 scenes_nodes[None] = {}
+
+                worlds_nodes = {library.name: {} for library in bpy.data.libraries}
+                worlds_nodes[None] = {}
 
                 objects_nodes = {library.name: {} for library in bpy.data.libraries}
                 objects_nodes[None] = {}
@@ -312,6 +315,18 @@ def draw_schematic_scene():
 
                         objects_nodes[library_name][object.name] = object_node
 
+                # Generate worlds nodes
+                if s.show_worlds:
+                    for world_index, world in enumerate(bpy.data.worlds):
+                        world_node = SchematicNode(world.name, list(s.color_worlds_nodes), world_index, 'WORLD')
+                        library_name = getattr(world.library, 'name', None)
+                        if s.show_libraries:
+                            library_node = libraries_nodes[library_name]
+                            world_node.parents.append(library_node)
+                            library_node.children.append(world_node)
+                        worlds_nodes[library_name][world.name] = world_node
+                        schematic_nodes[8].append(world_node)
+
                 # Generate scenes nodes
                 if s.show_scenes:
                     for scene_index, scene in enumerate(bpy.data.scenes):
@@ -342,6 +357,12 @@ def draw_schematic_scene():
                                     _select_children(object_node)
                                     _select_parents(object_node)
                                 schematic_nodes[2].append(object_node)
+                        world = scene.world
+                        if world:
+                            world_node = worlds_nodes.get(getattr(world.library, 'name', None)).get(world.name, None)
+                            if world_node:
+                                scene_node.children.append(world_node)
+                                world_node.parents.append(scene_node)
                         schematic_nodes[1].append(scene_node)
                         scenes_nodes[library_name][scene.name] = scene_node
 
@@ -466,8 +487,9 @@ class OopsSchematicUsedNodesPanel(bpy.types.Panel):
         s = context.window_manager.oops_schematic
         row = layout.row()
         row.prop(s, 'show_libraries', icon='LIBRARY_DATA_DIRECT', toggle=True, icon_only=True)
-        row = layout.row()
         row.prop(s, 'show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_worlds', icon='WORLD_DATA', toggle=True, icon_only=True)
+        row = layout.row()
         row.prop(s, 'show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
         row.prop(s, 'show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
         row.prop(s, 'show_cameras', icon='CAMERA_DATA', toggle=True, icon_only=True)
@@ -490,6 +512,7 @@ class OopsSchematicNodesColorsPanel(bpy.types.Panel):
         layout.prop(s, 'color_blend_file_nodes')
         layout.prop(s, 'color_libraries_nodes')
         layout.prop(s, 'color_scenes_nodes')
+        layout.prop(s, 'color_worlds_nodes')
         layout.prop(s, 'color_objects_nodes')
         layout.prop(s, 'color_meshes_nodes')
         layout.prop(s, 'color_cameras_nodes')
@@ -515,6 +538,7 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
 
     show_libraries = bpy.props.BoolProperty(name='Libraries', default=False)
     show_scenes = bpy.props.BoolProperty(name='Scenes', default=True)
+    show_worlds = bpy.props.BoolProperty(name='Worlds', default=True)
     show_objects = bpy.props.BoolProperty(name='Objects', default=True)
     show_meshes = bpy.props.BoolProperty(name='Meshes', default=True)
     show_cameras = bpy.props.BoolProperty(name='Meshes', default=True)
@@ -530,6 +554,9 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
         subtype='COLOR')
     color_scenes_nodes = bpy.props.FloatVectorProperty(
         name='Scenes', default=[0.2, 0.4, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    color_worlds_nodes = bpy.props.FloatVectorProperty(
+        name='Worlds', default=[0.2, 0.6, 0.4], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     color_objects_nodes = bpy.props.FloatVectorProperty(
         name='Objects', default=[0.6, 0.4, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
