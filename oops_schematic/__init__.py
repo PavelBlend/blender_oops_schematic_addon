@@ -298,16 +298,6 @@ def draw_schematic_scene():
                             object_node.parents.append(library_node)
                             library_node.children.append(object_node)
 
-                        # Select Node
-                        if s.select_3d_view and object in bpy.context.selected_objects:
-                            object_node.active = True
-                            object_node.color[0] += LIGHT_ADD_COLOR
-                            object_node.color[1] += LIGHT_ADD_COLOR
-                            object_node.color[2] += LIGHT_ADD_COLOR
-                            object_node.border_select = True
-                            _select_children(object_node)
-                            _select_parents(object_node)
-
                         schematic_nodes[2].append(object_node)
                         objects_nodes[library_name][object.name] = object_node
 
@@ -325,6 +315,15 @@ def draw_schematic_scene():
                             if object_node:
                                 scene_node.children.append(object_node)
                                 object_node.parents.append(scene_node)
+                                # Select Object Node in 3D View
+                                if s.select_3d_view and object in bpy.context.selected_objects:
+                                    object_node.active = True
+                                    object_node.color[0] += LIGHT_ADD_COLOR
+                                    object_node.color[1] += LIGHT_ADD_COLOR
+                                    object_node.color[2] += LIGHT_ADD_COLOR
+                                    object_node.border_select = True
+                                    _select_children(object_node)
+                                    _select_parents(object_node)
                         schematic_nodes[1].append(scene_node)
                         scenes_nodes[library_name][scene.name] = scene_node
 
