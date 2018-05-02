@@ -142,8 +142,8 @@ def draw_schematic_scene():
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'OopsSchematic':
 
-                # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Materials, 5 Textures, 6 Images
-                schematic_nodes = [[], [], [], [], [], [], []]
+                # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Cameras, 5 Materials, 6 Textures, 7 Images
+                schematic_nodes = [[], [], [], [], [], [], [], []]
                 blend_file = SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(s.color_blend_file_nodes), 0, 'BLEND_FILE')
                 if s.show_libraries:
                     libraries_nodes = {None: blend_file}
@@ -152,6 +152,7 @@ def draw_schematic_scene():
                 scenes_nodes[None] = {}
                 objects_nodes = scenes_nodes.copy()
                 meshes_nodes = scenes_nodes.copy()
+                cameras_nodes = scenes_nodes.copy()
                 materials_nodes = scenes_nodes.copy()
                 textures_nodes = scenes_nodes.copy()
                 images_nodes = scenes_nodes.copy()
@@ -173,7 +174,7 @@ def draw_schematic_scene():
                             image_node.parents.append(library_node)
                             library_node.children.append(image_node)
                         images_nodes[library_name][image.name] = image_node
-                        schematic_nodes[6].append(image_node)
+                        schematic_nodes[7].append(image_node)
 
                 # Generate textures nodes
                 if s.show_textures:
@@ -194,7 +195,7 @@ def draw_schematic_scene():
                                     image_node.parents.append(texture_node)
                                     texture_node.children.append(image_node)
 
-                        schematic_nodes[5].append(texture_node)
+                        schematic_nodes[6].append(texture_node)
                         textures_nodes[library_name][texture.name] = texture_node
 
                 # Generate materials nodes
@@ -240,7 +241,7 @@ def draw_schematic_scene():
                                                 texture_node.parents.append(material_node)
                                                 material_node.children.append(texture_node)
 
-                        schematic_nodes[4].append(material_node)
+                        schematic_nodes[5].append(material_node)
                         materials_nodes[library_name][material.name] = material_node
 
                 # Generate meshes nodes
@@ -262,6 +263,18 @@ def draw_schematic_scene():
                         schematic_nodes[3].append(mesh_node)
                         meshes_nodes[library_name][mesh.name] = mesh_node
 
+                # Generate cameras nodes
+                if s.show_cameras:
+                    for camera_index, camera in enumerate(bpy.data.cameras):
+                        camera_node = SchematicNode(camera.name, list(s.color_cameras_nodes), camera_index, 'CAMERA')
+                        library_name = getattr(camera.library, 'name', None)
+                        if s.show_libraries:
+                            library_node = libraries_nodes[library_name]
+                            camera_node.parents.append(library_node)
+                            library_node.children.append(camera_node)
+                        schematic_nodes[4].append(camera_node)
+                        cameras_nodes[library_name][camera.name] = camera_node
+
                 # Generate objects nodes
                 if s.show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
@@ -273,6 +286,11 @@ def draw_schematic_scene():
                             if mesh_node:
                                 mesh_node.parents.append(object_node)
                                 object_node.children.append(mesh_node)
+                        elif object.type == 'CAMERA':
+                            camera_node = cameras_nodes.get(getattr(object.data.library, 'name', None)).get(object.data.name, None)
+                            if camera_node:
+                                camera_node.parents.append(object_node)
+                                object_node.children.append(camera_node)
 
                         library_name = getattr(object.library, 'name', None)
                         if s.show_libraries:
@@ -429,6 +447,7 @@ class OopsSchematicUsedNodesPanel(bpy.types.Panel):
         row.prop(s, 'show_scenes', icon='SCENE_DATA', toggle=True, icon_only=True)
         row.prop(s, 'show_objects', icon='OBJECT_DATA', toggle=True, icon_only=True)
         row.prop(s, 'show_meshes', icon='MESH_DATA', toggle=True, icon_only=True)
+        row.prop(s, 'show_cameras', icon='CAMERA_DATA', toggle=True, icon_only=True)
         row = layout.row()
         row.prop(s, 'show_materials', icon='MATERIAL_DATA', toggle=True, icon_only=True)
         row.prop(s, 'show_textures', icon='TEXTURE_DATA', toggle=True, icon_only=True)
@@ -450,6 +469,7 @@ class OopsSchematicNodesColorsPanel(bpy.types.Panel):
         layout.prop(s, 'color_scenes_nodes')
         layout.prop(s, 'color_objects_nodes')
         layout.prop(s, 'color_meshes_nodes')
+        layout.prop(s, 'color_cameras_nodes')
         layout.prop(s, 'color_materials_nodes')
         layout.prop(s, 'color_textures_nodes')
         layout.prop(s, 'color_images_nodes')
@@ -474,6 +494,7 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show_scenes = bpy.props.BoolProperty(name='Scenes', default=True)
     show_objects = bpy.props.BoolProperty(name='Objects', default=True)
     show_meshes = bpy.props.BoolProperty(name='Meshes', default=True)
+    show_cameras = bpy.props.BoolProperty(name='Meshes', default=True)
     show_materials = bpy.props.BoolProperty(name='Materials', default=True)
     show_textures = bpy.props.BoolProperty(name='Textures', default=True)
     show_images = bpy.props.BoolProperty(name='Images', default=True)
@@ -492,6 +513,9 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
         subtype='COLOR')
     color_meshes_nodes = bpy.props.FloatVectorProperty(
         name='Meshes', default=[0.6, 0.6, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    color_cameras_nodes = bpy.props.FloatVectorProperty(
+        name='Cameras', default=[0.3, 0.3, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     color_materials_nodes = bpy.props.FloatVectorProperty(
         name='Materials', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
