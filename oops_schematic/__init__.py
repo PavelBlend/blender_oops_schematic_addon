@@ -314,6 +314,7 @@ def draw_schematic_scene():
                             library_node.children.append(object_node)
 
                         objects_nodes[library_name][object.name] = object_node
+                        schematic_nodes[2].append(object_node)
 
                 # Generate worlds nodes
                 if s.show_worlds:
@@ -356,7 +357,6 @@ def draw_schematic_scene():
                                     object_node.border_select = True
                                     _select_children(object_node)
                                     _select_parents(object_node)
-                                schematic_nodes[2].append(object_node)
                         world = scene.world
                         if world:
                             world_node = worlds_nodes.get(getattr(world.library, 'name', None)).get(world.name, None)
