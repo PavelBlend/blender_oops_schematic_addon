@@ -64,7 +64,7 @@ class SchematicNode:
             if self.offset_y < child.offset_y:
                 handle_coefficient = 4
             else:
-                handle_coefficient = 1 / 4
+                handle_coefficient = 1 / 2
             start = Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
             finish = Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
             handle1 = start.copy()
