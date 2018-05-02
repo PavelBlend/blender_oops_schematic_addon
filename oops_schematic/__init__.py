@@ -410,7 +410,6 @@ class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
         layout.prop(s, 'select_3d_view')
         layout.prop(s, 'tree_width')
         layout.prop(s, 'curve_resolution')
-        layout.label('Library Options:')
 
 
 class OopsSchematicUsedNodesPanel(bpy.types.Panel):
