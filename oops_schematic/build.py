@@ -8,7 +8,7 @@ from . import select
 from .constants import *
 
 
-def draw_schematic_scene():
+def build_schematic_scene():
     s = bpy.context.window_manager.oops_schematic    # s - schematic
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':

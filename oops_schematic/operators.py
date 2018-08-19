@@ -1,7 +1,7 @@
 
 import bpy
 
-from . import draw
+from . import build
 
 
 class OopsSchematicShow(bpy.types.Operator):
@@ -12,7 +12,7 @@ class OopsSchematicShow(bpy.types.Operator):
 
     @staticmethod
     def handle_add():
-        OopsSchematicShow._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw.draw_schematic_scene, (), 'WINDOW', 'POST_VIEW')
+        OopsSchematicShow._handle = bpy.types.SpaceNodeEditor.draw_handler_add(build.build_schematic_scene, (), 'WINDOW', 'POST_VIEW')
 
     @staticmethod
     def handle_remove():
