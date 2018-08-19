@@ -18,6 +18,7 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
     show_objects = bpy.props.BoolProperty(name='Objects', default=True)
     show_meshes = bpy.props.BoolProperty(name='Meshes', default=True)
     show_cameras = bpy.props.BoolProperty(name='Meshes', default=True)
+    show_lamps = bpy.props.BoolProperty(name='Lamps', default=True)
     show_materials = bpy.props.BoolProperty(name='Materials', default=True)
     show_textures = bpy.props.BoolProperty(name='Textures', default=True)
     show_images = bpy.props.BoolProperty(name='Images', default=True)
@@ -42,6 +43,9 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
         subtype='COLOR')
     color_cameras_nodes = bpy.props.FloatVectorProperty(
         name='Cameras', default=[0.3, 0.3, 0.6], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        subtype='COLOR')
+    color_lamps_nodes = bpy.props.FloatVectorProperty(
+        name='Lamps', default=[0.6, 0.6, 0.0], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
         subtype='COLOR')
     color_materials_nodes = bpy.props.FloatVectorProperty(
         name='Materials', default=[0.6, 0.2, 0.2], min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,

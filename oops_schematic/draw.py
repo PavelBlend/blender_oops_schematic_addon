@@ -13,13 +13,30 @@ def draw_schematic_scene():
     for area in bpy.context.window.screen.areas:
         if area.type == 'NODE_EDITOR':
             if area.spaces[0].tree_type == 'OopsSchematic':
-
-                # 0 Libraries 1 Scenes, 2 Objects, 3 Meshes, 4 Cameras, 5 Materials, 6 Textures, 7 Images, 8 Worlds
-                schematic_nodes = [[], [], [], [], [], [], [], [], []]
+                schematic_nodes = {
+                    'Library': [],
+                    'Scene': [],
+                    'Object': [],
+                    'Mesh': [],
+                    'Camera': [],
+                    'Lamp': [],
+                    'Curve': [],
+                    'Surface': [],
+                    'Metaball': [],
+                    'Text': [],
+                    'Armature': [],
+                    'Lattice': [],
+                    'Speaker': [],
+                    'Force Field': [],
+                    'Material': [],
+                    'Texture': [],
+                    'Image': [],
+                    'World': []
+                }
                 blend_file = nodes.SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(s.color_blend_file_nodes), 0, 'BLEND_FILE')
                 if s.show_libraries:
                     libraries_nodes = {None: blend_file}
-                    schematic_nodes[0].append(blend_file)
+                    schematic_nodes['Library'].append(blend_file)
 
                 scenes_nodes = {library.name: {} for library in bpy.data.libraries}
                 scenes_nodes[None] = {}
@@ -36,6 +53,9 @@ def draw_schematic_scene():
                 cameras_nodes = {library.name: {} for library in bpy.data.libraries}
                 cameras_nodes[None] = {}
 
+                lamps_nodes = {library.name: {} for library in bpy.data.libraries}
+                lamps_nodes[None] = {}
+
                 materials_nodes = {library.name: {} for library in bpy.data.libraries}
                 materials_nodes[None] = {}
 
@@ -50,7 +70,7 @@ def draw_schematic_scene():
                     for library_index, library in enumerate(bpy.data.libraries):
                         library_node = nodes.SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(s.color_libraries_nodes), library_index + 1, 'LIBRARY')
                         libraries_nodes[library.name] = library_node
-                        schematic_nodes[0].append(library_node)
+                        schematic_nodes['Library'].append(library_node)
 
                 # Generate images nodes
                 if s.show_images:
@@ -62,7 +82,7 @@ def draw_schematic_scene():
                             image_node.parents.append(library_node)
                             library_node.children.append(image_node)
                         images_nodes[library_name][image.name] = image_node
-                        schematic_nodes[7].append(image_node)
+                        schematic_nodes['Image'].append(image_node)
 
                 # Generate textures nodes
                 if s.show_textures:
@@ -83,7 +103,7 @@ def draw_schematic_scene():
                                     image_node.parents.append(texture_node)
                                     texture_node.children.append(image_node)
 
-                        schematic_nodes[6].append(texture_node)
+                        schematic_nodes['Texture'].append(texture_node)
                         textures_nodes[library_name][texture.name] = texture_node
 
                 # Generate materials nodes
@@ -129,7 +149,7 @@ def draw_schematic_scene():
                                                 texture_node.parents.append(material_node)
                                                 material_node.children.append(texture_node)
 
-                        schematic_nodes[5].append(material_node)
+                        schematic_nodes['Material'].append(material_node)
                         materials_nodes[library_name][material.name] = material_node
 
                 # Generate meshes nodes
@@ -148,7 +168,7 @@ def draw_schematic_scene():
                                 if material_node:
                                     material_node.parents.append(mesh_node)
                                     mesh_node.children.append(material_node)
-                        schematic_nodes[3].append(mesh_node)
+                        schematic_nodes['Mesh'].append(mesh_node)
                         meshes_nodes[library_name][mesh.name] = mesh_node
 
                 # Generate cameras nodes
@@ -160,8 +180,20 @@ def draw_schematic_scene():
                             library_node = libraries_nodes[library_name]
                             camera_node.parents.append(library_node)
                             library_node.children.append(camera_node)
-                        schematic_nodes[4].append(camera_node)
+                        schematic_nodes['Camera'].append(camera_node)
                         cameras_nodes[library_name][camera.name] = camera_node
+
+                # Generate lamps nodes
+                if s.show_lamps:
+                    for lamp_index, lamp in enumerate(bpy.data.lamps):
+                        lamp_node = nodes.SchematicNode(lamp.name, list(s.color_lamps_nodes), lamp_index, 'LAMP')
+                        library_name = getattr(lamp.library, 'name', None)
+                        if s.show_libraries:
+                            library_node = libraries_nodes[library_name]
+                            lamp_node.parents.append(library_node)
+                            library_node.children.append(lamp_node)
+                        schematic_nodes['Camera'].append(lamp_node)
+                        lamps_nodes[library_name][lamp.name] = lamp_node
 
                 # Generate objects nodes
                 if s.show_objects:
@@ -179,6 +211,11 @@ def draw_schematic_scene():
                             if camera_node:
                                 camera_node.parents.append(object_node)
                                 object_node.children.append(camera_node)
+                        elif object.type == 'LAMP':
+                            lamp_node = lamps_nodes.get(getattr(object.data.library, 'name', None)).get(object.data.name, None)
+                            if lamp_node:
+                                lamp_node.parents.append(object_node)
+                                object_node.children.append(lamp_node)
 
                         library_name = getattr(object.library, 'name', None)
                         if s.show_libraries:
@@ -187,7 +224,7 @@ def draw_schematic_scene():
                             library_node.children.append(object_node)
 
                         objects_nodes[library_name][object.name] = object_node
-                        schematic_nodes[2].append(object_node)
+                        schematic_nodes['Object'].append(object_node)
 
                 # Generate worlds nodes
                 if s.show_worlds:
@@ -199,7 +236,7 @@ def draw_schematic_scene():
                             world_node.parents.append(library_node)
                             library_node.children.append(world_node)
                         worlds_nodes[library_name][world.name] = world_node
-                        schematic_nodes[8].append(world_node)
+                        schematic_nodes['World'].append(world_node)
 
                 # Generate scenes nodes
                 if s.show_scenes:
@@ -236,13 +273,34 @@ def draw_schematic_scene():
                             if world_node:
                                 scene_node.children.append(world_node)
                                 world_node.parents.append(scene_node)
-                        schematic_nodes[1].append(scene_node)
+                        schematic_nodes['Scene'].append(scene_node)
                         scenes_nodes[library_name][scene.name] = scene_node
 
+                nodes_keys = [
+                    'Library',
+                    'Scene',
+                    'Object',
+                    'Mesh',
+                    'Camera',
+                    'Lamp',
+                    'Curve',
+                    'Surface',
+                    'Metaball',
+                    'Text',
+                    'Armature',
+                    'Lattice',
+                    'Speaker',
+                    'Force Field',
+                    'Material',
+                    'Texture',
+                    'Image',
+                    'World'
+                ]
                 # Set Nodes Coordinates
                 last_offset_x = 0
                 last_offset_y = 0
-                for schematic_nodes_group in schematic_nodes:
+                for node_key in nodes_keys:
+                    schematic_nodes_group = schematic_nodes[node_key]
                     for schematic_node in schematic_nodes_group:
                         if last_offset_x > s.tree_width:
                             last_offset_x = 0
@@ -270,12 +328,18 @@ def draw_schematic_scene():
                         last_offset_y += Y_DISTANCE
 
                 # Draw nodes
-                for schematic_nodes_group in schematic_nodes:
+
+                for node_key in nodes_keys:
+                    schematic_nodes_group = schematic_nodes[node_key]
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw_lines()
-                for schematic_nodes_group in schematic_nodes:
+
+                for node_key in nodes_keys:
+                    schematic_nodes_group = schematic_nodes[node_key]
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw_box()
-                for schematic_nodes_group in schematic_nodes:
+
+                for node_key in nodes_keys:
+                    schematic_nodes_group = schematic_nodes[node_key]
                     for schematic_node in schematic_nodes_group:
                         schematic_node.draw_text()
