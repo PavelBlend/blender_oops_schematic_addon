@@ -63,3 +63,11 @@ class OopsSchematicPropertyGroup(bpy.types.PropertyGroup):
         min=2, max=100, soft_min=2, soft_max=100)
 
     multi_click = bpy.props.CollectionProperty(type=OopsSchematicClick)
+    move_offset_x = bpy.props.FloatProperty(default=0.0)
+    move_offset_y = bpy.props.FloatProperty(default=0.0)
+    grab_mode = bpy.props.BoolProperty(default=False)
+    apply_location = bpy.props.BoolProperty(default=False)
+
+    offset = bpy.props.BoolProperty(default=False)
+    position_x = bpy.props.FloatProperty(default=0.0)
+    position_y = bpy.props.FloatProperty(default=0.0)

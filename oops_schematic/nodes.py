@@ -8,7 +8,7 @@ from .constants import *
 
 
 class SchematicNode:
-    def __init__(self, text, color, index, type):
+    def __init__(self, text, color, index, type, data=None):
         self.children = []
         self.parents = []
         self.text = text
@@ -20,6 +20,7 @@ class SchematicNode:
         self.active_child = []
         self.border_select = False
         self.type = type
+        self.data = data
 
     def draw_lines(self):
         for child in self.children:

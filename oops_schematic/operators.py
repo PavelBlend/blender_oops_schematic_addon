@@ -38,6 +38,31 @@ class OopsSchematicShow(bpy.types.Operator):
                         click.x = click_x
                         click.y = click_y
                         region.tag_redraw()
+        elif event.type == 'G':
+            area = context.area
+            if area.type == 'NODE_EDITOR':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        self.start_mouse_x, self.start_mouse_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        s.grab_mode = True
+        elif event.type == 'MOUSEMOVE' and s.grab_mode:
+            area = context.area
+            if area.type == 'NODE_EDITOR':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        mouse_x, mouse_y = region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+                        s.move_offset_x = mouse_x - self.start_mouse_x
+                        s.move_offset_y = mouse_y - self.start_mouse_y
+                        region.tag_redraw()
+        elif (event.type == 'LEFTMOUSE' or event.type == 'RIGHTMOUSE') and s.grab_mode:
+            area = context.area
+            if area.type == 'NODE_EDITOR':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        if event.type == 'LEFTMOUSE':
+                            s.apply_location = True
+                        s.grab_mode = False
+                        region.tag_redraw()
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):

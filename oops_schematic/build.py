@@ -33,7 +33,13 @@ def build_schematic_scene():
                     'Image': [],
                     'World': []
                 }
-                blend_file = nodes.SchematicNode('Blend File: {}'.format(os.path.basename(bpy.data.filepath)), list(s.color_blend_file_nodes), 0, 'BLEND_FILE')
+                blend_file = nodes.SchematicNode(
+                    'Blend File: {}'.format(os.path.basename(bpy.data.filepath)),
+                    list(s.color_blend_file_nodes),
+                    0,
+                    'BLEND_FILE',
+                    data=bpy.context.window_manager
+                )
                 if s.show_libraries:
                     libraries_nodes = {None: blend_file}
                     schematic_nodes['Library'].append(blend_file)
@@ -68,14 +74,14 @@ def build_schematic_scene():
                 # Generate libraries nodes
                 if s.show_libraries:
                     for library_index, library in enumerate(bpy.data.libraries):
-                        library_node = nodes.SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(s.color_libraries_nodes), library_index + 1, 'LIBRARY')
+                        library_node = nodes.SchematicNode('{}: {}'.format(library.name, os.path.basename(library.filepath.replace('//', ''))), list(s.color_libraries_nodes), library_index + 1, 'LIBRARY', data=library)
                         libraries_nodes[library.name] = library_node
                         schematic_nodes['Library'].append(library_node)
 
                 # Generate images nodes
                 if s.show_images:
                     for image_index, image in enumerate(bpy.data.images):
-                        image_node = nodes.SchematicNode(image.name, list(s.color_images_nodes), image_index, 'IMAGE')
+                        image_node = nodes.SchematicNode(image.name, list(s.color_images_nodes), image_index, 'IMAGE', data=image)
                         library_name = getattr(image.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -87,7 +93,7 @@ def build_schematic_scene():
                 # Generate textures nodes
                 if s.show_textures:
                     for texture_index, texture in enumerate(bpy.data.textures):
-                        texture_node = nodes.SchematicNode(texture.name, list(s.color_textures_nodes), texture_index, 'TEXTURE')
+                        texture_node = nodes.SchematicNode(texture.name, list(s.color_textures_nodes), texture_index, 'TEXTURE', data=texture)
                         library_name = getattr(texture.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -109,7 +115,7 @@ def build_schematic_scene():
                 # Generate materials nodes
                 if s.show_materials:
                     for material_index, material in enumerate(bpy.data.materials):
-                        material_node = nodes.SchematicNode(material.name, list(s.color_materials_nodes), material_index, 'MATERIAL')
+                        material_node = nodes.SchematicNode(material.name, list(s.color_materials_nodes), material_index, 'MATERIAL', data=material)
                         library_name = getattr(material.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -155,7 +161,7 @@ def build_schematic_scene():
                 # Generate meshes nodes
                 if s.show_meshes:
                     for mesh_index, mesh in enumerate(bpy.data.meshes):
-                        mesh_node = nodes.SchematicNode(mesh.name, list(s.color_meshes_nodes), mesh_index, 'MESH')
+                        mesh_node = nodes.SchematicNode(mesh.name, list(s.color_meshes_nodes), mesh_index, 'MESH', data=mesh)
                         library_name = getattr(mesh.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -174,7 +180,7 @@ def build_schematic_scene():
                 # Generate cameras nodes
                 if s.show_cameras:
                     for camera_index, camera in enumerate(bpy.data.cameras):
-                        camera_node = nodes.SchematicNode(camera.name, list(s.color_cameras_nodes), camera_index, 'CAMERA')
+                        camera_node = nodes.SchematicNode(camera.name, list(s.color_cameras_nodes), camera_index, 'CAMERA', data=camera)
                         library_name = getattr(camera.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -186,7 +192,7 @@ def build_schematic_scene():
                 # Generate lamps nodes
                 if s.show_lamps:
                     for lamp_index, lamp in enumerate(bpy.data.lamps):
-                        lamp_node = nodes.SchematicNode(lamp.name, list(s.color_lamps_nodes), lamp_index, 'LAMP')
+                        lamp_node = nodes.SchematicNode(lamp.name, list(s.color_lamps_nodes), lamp_index, 'LAMP', data=lamp)
                         library_name = getattr(lamp.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -198,7 +204,7 @@ def build_schematic_scene():
                 # Generate objects nodes
                 if s.show_objects:
                     for object_index, object in enumerate(bpy.data.objects):
-                        object_node = nodes.SchematicNode(object.name, list(s.color_objects_nodes), object_index, 'OBJECT')
+                        object_node = nodes.SchematicNode(object.name, list(s.color_objects_nodes), object_index, 'OBJECT', data=object)
 
                         # Assign Children and Parents
                         if object.type == 'MESH':
@@ -229,7 +235,7 @@ def build_schematic_scene():
                 # Generate worlds nodes
                 if s.show_worlds:
                     for world_index, world in enumerate(bpy.data.worlds):
-                        world_node = nodes.SchematicNode(world.name, list(s.color_worlds_nodes), world_index, 'WORLD')
+                        world_node = nodes.SchematicNode(world.name, list(s.color_worlds_nodes), world_index, 'WORLD', data=world)
                         library_name = getattr(world.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -241,7 +247,7 @@ def build_schematic_scene():
                 # Generate scenes nodes
                 if s.show_scenes:
                     for scene_index, scene in enumerate(bpy.data.scenes):
-                        scene_node = nodes.SchematicNode(scene.name, list(s.color_scenes_nodes), scene_index, 'SCENE')
+                        scene_node = nodes.SchematicNode(scene.name, list(s.color_scenes_nodes), scene_index, 'SCENE', data=scene)
                         library_name = getattr(scene.library, 'name', None)
                         if s.show_libraries:
                             library_node = libraries_nodes[library_name]
@@ -296,6 +302,7 @@ def build_schematic_scene():
                     'Image',
                     'World'
                 ]
+
                 # Set Nodes Coordinates
                 last_offset_x = 0
                 last_offset_y = 0
@@ -307,11 +314,18 @@ def build_schematic_scene():
                             last_offset_y += Y_DISTANCE
                         schematic_node.offset_x = last_offset_x
                         schematic_node.offset_y = last_offset_y
+                        if schematic_node.data:
+                            if schematic_node.data.oops_schematic.offset:
+                                schematic_node.offset_x = schematic_node.data.oops_schematic.position_x
+                                schematic_node.offset_y = schematic_node.data.oops_schematic.position_y
+                            else:
+                                schematic_node.data.oops_schematic.position_x = last_offset_x
+                                schematic_node.data.oops_schematic.position_y = last_offset_y
                         # Select Node
                         node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
                         for click in s.multi_click:
-                            if last_offset_x < click.x < (last_offset_x + node_size_x) and \
-                                    last_offset_y < click.y < (last_offset_y + NODE_HIGHT) and \
+                            if schematic_node.offset_x < click.x < (schematic_node.offset_x + node_size_x) and \
+                                    schematic_node.offset_y < click.y < (schematic_node.offset_y + NODE_HIGHT) and \
                                     not s.select_3d_view:
                                 if not schematic_node.active:
                                     schematic_node.active = True
@@ -320,6 +334,17 @@ def build_schematic_scene():
                                     schematic_node.color[2] += LIGHT_ADD_COLOR
                                 if not schematic_node.border_select:
                                     schematic_node.border_select = True
+                                    if s.grab_mode:
+                                        schematic_node.offset_x += s.move_offset_x
+                                        schematic_node.offset_y += s.move_offset_y
+                                    elif s.apply_location:
+                                        schematic_node.offset_x += s.move_offset_x
+                                        schematic_node.offset_y += s.move_offset_y
+                                        s.apply_location = False
+                                        if schematic_node.data:
+                                            schematic_node.data.oops_schematic.offset = True
+                                            schematic_node.data.oops_schematic.position_x = schematic_node.offset_x
+                                            schematic_node.data.oops_schematic.position_y = schematic_node.offset_y
                                 select.select_children(schematic_node)
                                 select.select_parents(schematic_node)
                         last_offset_x += node_size_x

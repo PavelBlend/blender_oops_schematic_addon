@@ -2,6 +2,7 @@
 import bpy
 
 from . import operators
+from . import nodes_properties
 from . import panels
 from . import properties
 
@@ -17,7 +18,27 @@ def draw_operator(self, context):
         self.layout.operator('node.oops_schematic_show')
 
 
+def register_nodes_properties():
+    bpy.utils.register_class(nodes_properties.OopsSchematicNodePropertyGroup)
+
+    bpy.types.Scene.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Object.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Mesh.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Library.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Camera.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Lamp.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Material.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Texture.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.Image.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+    bpy.types.World.oops_schematic = bpy.props.PointerProperty(type=nodes_properties.OopsSchematicNodePropertyGroup)
+
+
+def unregister_nodes_properties():
+    del bpy.types.Scene.oops_schematic
+
+
 def register():
+    register_nodes_properties()
     bpy.utils.register_class(properties.OopsSchematicClick)
     bpy.utils.register_class(properties.OopsSchematicPropertyGroup)
     bpy.types.WindowManager.oops_schematic = bpy.props.PointerProperty(type=properties.OopsSchematicPropertyGroup)
@@ -39,3 +60,4 @@ def unregister():
     del bpy.types.WindowManager.oops_schematic
     bpy.utils.unregister_class(properties.OopsSchematicPropertyGroup)
     bpy.utils.unregister_class(properties.OopsSchematicClick)
+    unregister_nodes_properties()
