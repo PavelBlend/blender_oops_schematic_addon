@@ -2,6 +2,12 @@
 import bpy
 
 
+class OopsSchematicNodePropertyGroup(bpy.types.PropertyGroup):
+    offset = bpy.props.BoolProperty(default=False)
+    position_x = bpy.props.FloatProperty(default=0.0)
+    position_y = bpy.props.FloatProperty(default=0.0)
+
+
 class OopsSchematicClick(bpy.types.PropertyGroup):
     x = bpy.props.FloatProperty(default=-1000.0)
     y = bpy.props.FloatProperty(default=-1000.0)
