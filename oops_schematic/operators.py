@@ -38,7 +38,7 @@ class OopsSchematicShow(bpy.types.Operator):
                         click.x = click_x
                         click.y = click_y
                         region.tag_redraw()
-        elif event.type == 'G':
+        elif event.type == 'G' and event.value == 'RELEASE':
             area = context.area
             if area.type == 'NODE_EDITOR':
                 for region in area.regions:
