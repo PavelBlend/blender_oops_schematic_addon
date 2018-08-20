@@ -34,24 +34,27 @@ class SchematicNode:
                 bgl.glLineWidth(1)
                 color = (0.5, 0.5, 0.5)
             # Vertices calculation
-            if self.offset_y < child.offset_y:
-                handle_coefficient = 4
-            else:
-                handle_coefficient = 1 / 2
+            handle_coefficient = 4
             start = mathutils.Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
             finish = mathutils.Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
-            handle1 = start.copy()
-            handle1.y += (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
-            handle2 = finish.copy()
-            handle2.y -= (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+
+            handle_start = start.copy()
+            handle_finish = finish.copy()
+            if child.offset_y > self.offset_y + NODE_HIGHT:
+                handle_start.y += (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+                handle_finish.y -= (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+            else:
+                handle_start.y += (self.offset_y - child.offset_y + NODE_HIGHT)
+                handle_finish.y -= (self.offset_y - child.offset_y + NODE_HIGHT)
+
             curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
-            vertices = [vertex for vertex in mathutils.geometry.interpolate_bezier(start, handle1, handle2, finish, curve_resolution)]
+            vertices = [vertex for vertex in mathutils.geometry.interpolate_bezier(start, handle_start, handle_finish, finish, curve_resolution)]
             # Drawing
             bgl.glColor3f(*color)
             bgl.glBegin(bgl.GL_LINES)
-            for i in range(len(vertices)-1):
+            for i in range(len(vertices) - 1):
                 bgl.glVertex2f(vertices[i].x, vertices[i].y)
-                bgl.glVertex2f(vertices[i+1].x, vertices[i+1].y)
+                bgl.glVertex2f(vertices[i + 1].x, vertices[i + 1].y)
             bgl.glEnd()
 
     def draw_box(self):
