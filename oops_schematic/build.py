@@ -340,6 +340,8 @@ def build_schematic_scene():
                                     elif s.apply_location:
                                         schematic_node.offset_x += s.move_offset_x
                                         schematic_node.offset_y += s.move_offset_y
+                                        click.x += s.move_offset_x
+                                        click.y += s.move_offset_y
                                         if schematic_node.data:
                                             schematic_node.data.oops_schematic.offset = True
                                             schematic_node.data.oops_schematic.position_x = schematic_node.offset_x
