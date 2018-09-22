@@ -34,6 +34,17 @@ def register_nodes_properties():
 
 def unregister_nodes_properties():
     del bpy.types.Scene.oops_schematic
+    del bpy.types.Object.oops_schematic
+    del bpy.types.Mesh.oops_schematic
+    del bpy.types.Library.oops_schematic
+    del bpy.types.Camera.oops_schematic
+    del bpy.types.Lamp.oops_schematic
+    del bpy.types.Material.oops_schematic
+    del bpy.types.Texture.oops_schematic
+    del bpy.types.Image.oops_schematic
+    del bpy.types.World.oops_schematic
+
+    bpy.utils.unregister_class(properties.OopsSchematicNodePropertyGroup)
 
 
 def register():
