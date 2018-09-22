@@ -323,12 +323,15 @@ def build_schematic_scene():
                                 schematic_node.data.oops_schematic.position_y = last_offset_y
                         # Select Node
                         node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
+                        if not len(s.multi_click):
+                            schematic_node.data.oops_schematic.select = False
                         for click in s.multi_click:
-                            if schematic_node.offset_x < click.x < (schematic_node.offset_x + node_size_x) and \
-                                    schematic_node.offset_y < click.y < (schematic_node.offset_y + NODE_HIGHT) and \
+                            if schematic_node.offset_x <= click.x <= (schematic_node.offset_x + node_size_x) and \
+                                    schematic_node.offset_y <= click.y <= (schematic_node.offset_y + NODE_HIGHT) and \
                                     not s.select_3d_view:
                                 if not schematic_node.active:
                                     schematic_node.active = True
+                                    schematic_node.data.oops_schematic.select = True
                                     schematic_node.color[0] += LIGHT_ADD_COLOR
                                     schematic_node.color[1] += LIGHT_ADD_COLOR
                                     schematic_node.color[2] += LIGHT_ADD_COLOR

@@ -4,6 +4,38 @@ import bpy
 from . import build
 
 
+def toggle_select(s):
+    data_blocks = [
+        bpy.data.scenes,
+        bpy.data.objects,
+        bpy.data.meshes,
+        bpy.data.libraries,
+        bpy.data.cameras,
+        bpy.data.lamps,
+        bpy.data.materials,
+        bpy.data.textures,
+        bpy.data.images,
+        bpy.data.worlds,
+    ]
+
+    select = True
+
+    for data in data_blocks:
+        for block in data:
+            if block.oops_schematic.select:
+                select = False
+                break
+
+    if not select:
+        s.multi_click.clear()
+    else:
+        for data in data_blocks:
+            for block in data:
+                click = s.multi_click.add()
+                click.x = block.oops_schematic.position_x
+                click.y = block.oops_schematic.position_y
+
+
 class OopsSchematicShow(bpy.types.Operator):
     bl_idname = "node.oops_schematic_show"
     bl_label = "Show/Hide Oops Schematic"
@@ -62,6 +94,13 @@ class OopsSchematicShow(bpy.types.Operator):
                         if event.type == 'LEFTMOUSE':
                             s.apply_location = True
                         s.grab_mode = False
+                        region.tag_redraw()
+        elif event.type == 'A' and event.value == 'RELEASE':
+            area = context.area
+            if area.type == 'NODE_EDITOR':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        toggle_select(s)
                         region.tag_redraw()
         return {'PASS_THROUGH'}
 
