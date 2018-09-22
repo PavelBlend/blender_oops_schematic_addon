@@ -322,7 +322,7 @@ def build_schematic_scene():
                                 schematic_node.data.oops_schematic.position_x = last_offset_x
                                 schematic_node.data.oops_schematic.position_y = last_offset_y
                         # Select Node
-                        node_size_x = len(schematic_node.text) * CHAR_SIZE + X_DISTANCE
+                        node_size_x = len(schematic_node.text) * CHAR_SIZE
                         if not len(s.multi_click):
                             schematic_node.data.oops_schematic.select = False
                         for click in s.multi_click:
@@ -351,7 +351,7 @@ def build_schematic_scene():
                                             schematic_node.data.oops_schematic.position_y = schematic_node.offset_y
                                 select.select_children(schematic_node)
                                 select.select_parents(schematic_node)
-                        last_offset_x += node_size_x
+                        last_offset_x += node_size_x + X_DISTANCE
                     last_offset_x = 0
                     if schematic_nodes_group:
                         last_offset_y += Y_DISTANCE
