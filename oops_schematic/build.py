@@ -264,15 +264,6 @@ def build_schematic_scene():
                                     child_object_node.parents.append(object_node)
                                 scene_node.children.append(object_node)
                                 object_node.parents.append(scene_node)
-                                # Select Object Node in 3D View
-                                if s.select_3d_view and object in bpy.context.selected_objects:
-                                    object_node.active = True
-                                    object_node.color[0] += LIGHT_ADD_COLOR
-                                    object_node.color[1] += LIGHT_ADD_COLOR
-                                    object_node.color[2] += LIGHT_ADD_COLOR
-                                    object_node.border_select = True
-                                    select.select_children(object_node)
-                                    select.select_parents(object_node)
                         world = scene.world
                         if world:
                             world_node = worlds_nodes.get(getattr(world.library, 'name', None)).get(world.name, None)
@@ -281,6 +272,18 @@ def build_schematic_scene():
                                 world_node.parents.append(scene_node)
                         schematic_nodes['Scene'].append(scene_node)
                         scenes_nodes[library_name][scene.name] = scene_node
+
+                for object in bpy.data.objects:
+                    # Select Object Node in 3D View
+                    if s.select_3d_view and object in bpy.context.selected_objects:
+                        object_node = objects_nodes.get(getattr(object.library, 'name', None)).get(object.name, None)
+                        object_node.active = True
+                        object_node.color[0] += LIGHT_ADD_COLOR
+                        object_node.color[1] += LIGHT_ADD_COLOR
+                        object_node.color[2] += LIGHT_ADD_COLOR
+                        object_node.border_select = True
+                        select.select_children(object_node)
+                        select.select_parents(object_node)
 
                 nodes_keys = [
                     'Library',
