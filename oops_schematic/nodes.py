@@ -33,22 +33,29 @@ class SchematicNode:
             if not child.border_select and (self.type in {'BLEND_FILE', 'LIBRARY'}) and not self.border_select:
                 bgl.glLineWidth(1)
                 color = (0.5, 0.5, 0.5)
+
             # Vertices calculation
-            handle_coefficient = 4
+            handle_coefficient = 2
             start = mathutils.Vector((self.offset_x + len(self.text) * (CHAR_SIZE / 2), self.offset_y + NODE_HIGHT))
             finish = mathutils.Vector((child.offset_x + len(child.text) * (CHAR_SIZE / 2), child.offset_y))
 
             handle_start = start.copy()
             handle_finish = finish.copy()
-            if child.offset_y > self.offset_y + NODE_HIGHT:
-                handle_start.y += (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
-                handle_finish.y -= (child.offset_y - self.offset_y + NODE_HIGHT) / handle_coefficient
+            handle_length = abs(finish.y - start.y) / handle_coefficient
+
+            if (finish.y - start.y) > NODE_HIGHT * 2:
+                handle_start.y += handle_length
+                handle_finish.y -= handle_length
+            elif (finish.y - start.y) < -NODE_HIGHT * 2:
+                handle_start.y += handle_length
+                handle_finish.y -= handle_length
             else:
-                handle_start.y += (self.offset_y - child.offset_y + NODE_HIGHT)
-                handle_finish.y -= (self.offset_y - child.offset_y + NODE_HIGHT)
+                handle_start.y += NODE_HIGHT
+                handle_finish.y -= NODE_HIGHT
 
             curve_resolution = bpy.context.window_manager.oops_schematic.curve_resolution
             vertices = [vertex for vertex in mathutils.geometry.interpolate_bezier(start, handle_start, handle_finish, finish, curve_resolution)]
+
             # Drawing
             bgl.glColor3f(*color)
             bgl.glBegin(bgl.GL_LINES)
