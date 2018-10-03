@@ -2,12 +2,19 @@
 import bpy
 
 
-class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_oops_schematic_display_options"
-    bl_label = "Display Options"
+class OopsSchematicBasePanel(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = "OOPS Schematic"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.tree_type == "OopsSchematic"
+
+
+class OopsSchematicDisplayOptionsPanel(OopsSchematicBasePanel):
+    bl_idname = "NODE_PT_oops_schematic_display_options"
+    bl_label = "Display Options"
 
     def draw(self, context):
         layout = self.layout
@@ -17,12 +24,9 @@ class OopsSchematicDisplayOptionsPanel(bpy.types.Panel):
         layout.prop(s, 'curve_resolution')
 
 
-class OopsSchematicUsedNodesPanel(bpy.types.Panel):
+class OopsSchematicUsedNodesPanel(OopsSchematicBasePanel):
     bl_idname = "NODE_PT_oops_schematic_used_nodes"
     bl_label = "Used Nodes"
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = "OOPS Schematic"
 
     def draw(self, context):
         layout = self.layout
@@ -42,12 +46,9 @@ class OopsSchematicUsedNodesPanel(bpy.types.Panel):
         row.prop(s, 'show_images', icon='IMAGE_DATA', toggle=True, icon_only=True)
 
 
-class OopsSchematicNodesColorsPanel(bpy.types.Panel):
+class OopsSchematicNodesColorsPanel(OopsSchematicBasePanel):
     bl_idname = "NODE_PT_oops_schematic_nodes_colors"
     bl_label = "Nodes Colors"
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = "OOPS Schematic"
 
     def draw(self, context):
         layout = self.layout
